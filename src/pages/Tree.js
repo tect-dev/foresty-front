@@ -11,7 +11,7 @@ import {
 } from "../lib/testCode";
 import { colorPalette, boxShadow } from "../lib/style";
 import { reduxStore } from "../index";
-import { selectNode } from "../redux/tree";
+import { selectNode, closeNode } from "../redux/tree";
 
 export const TreePage = React.memo(() => {
   const containerRef = React.useRef(null);
@@ -166,15 +166,25 @@ function initGraph(container) {
       })
       .style("stroke-width", selectedNodeStrokeWidth)
       .on("click", (node) => {
-        reduxStore.dispatch(selectNode(node));
-        const id = Math.random(); //or some such identifier
-        const d = document.createElement("div");
-        d.id = node.id;
-        document.getElementById("root").appendChild(d);
-        ReactDOM.render(
-          <SelectedNodeModal node={node} />,
-          document.getElementById(node.id)
-        );
+        // 만약 클릭한 노드가 이미 클릭한 노드였다면 close 하는 로직 추가해도 괜찮겠네.
+        if (
+          reduxStore.getState().tree.selectedNodeList.find((ele) => {
+            return ele.id === node.id;
+          })
+        ) {
+          reduxStore.dispatch(closeNode(node));
+        } else {
+          reduxStore.dispatch(selectNode(node));
+          const id = Math.random(); //or some such identifier
+          const d = document.createElement("div");
+          d.id = node.id;
+          //document.getElementsByTagName("body")[0].appendChild(d);
+          document.getElementById("root").appendChild(d);
+          ReactDOM.render(
+            <SelectedNodeModal node={node} />,
+            document.getElementById(node.id)
+          );
+        }
       })
       .style("cursor", "pointer");
   }

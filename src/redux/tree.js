@@ -42,6 +42,8 @@ export default function tree(state = initialState, action) {
       const removed = prevSelected.filter((ele) => {
         return ele.id !== action.node.id;
       });
+      const thisIs = document.getElementById(action.node.id);
+      thisIs.remove();
       return { ...state, selectedNodeList: removed };
     default:
       return { ...state };
