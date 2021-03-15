@@ -34,6 +34,10 @@ const TreeMap = styled.div`
   border: 1px solid ${colorPalette.gray3};
   background-color: #ffffff;
   box-shadow: ${boxShadow.default};
+  z-index: 0;
+  position: absolute;
+  height: auto;
+  width: 100%;
 `;
 
 const MapWidth = 1200;
@@ -175,7 +179,6 @@ function initGraph(container) {
           reduxStore.dispatch(closeNode(node));
         } else {
           reduxStore.dispatch(selectNode(node));
-          const id = Math.random(); //or some such identifier
           const d = document.createElement("div");
           d.id = node.id;
           //document.getElementsByTagName("body")[0].appendChild(d);
@@ -188,7 +191,34 @@ function initGraph(container) {
       })
       .style("cursor", "pointer");
   }
+  function initLabel() {
+    labelGroup.selectAll("*").remove();
+    labelGroup
+      .selectAll("text")
+      .data(nodeList)
+      .join("text")
+      .attr("x", (d) => {
+        return d.x;
+      })
+      .attr("y", (d) => {
+        return d.y + nodeRadius * 2;
+      })
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .attr("class", (d) => d.id)
+      .text((d) => {
+        return d.name;
+      })
+      .style("font-size", labelSize)
+      .style("user-select", "none")
+      .style(
+        "text-shadow",
+        "1px 1px 1px #ffffff"
+        //'-3px 0 #F2F1F6, 0 3px #F2F1F6, 3px 0 #F2F1F6, 0 -3px #F2F1F6'
+      );
+  }
 
   reduxStore.subscribe(initNode);
   initNode();
+  initLabel();
 }
