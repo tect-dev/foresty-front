@@ -11,16 +11,28 @@ import {
 } from "../lib/testCode";
 import { colorPalette, boxShadow } from "../lib/style";
 import { reduxStore } from "../index";
-import { selectNode, closeNode } from "../redux/tree";
+import { useSelector, useDispatch } from "react-redux";
+import { selectNode, closeNode, readTree } from "../redux/tree";
 
-export const TreePage = React.memo(() => {
+export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
+  const dispatch = useDispatch();
+  const { treeID } = match.params;
+  const { nodeList, linkList } = useSelector((state) => {
+    return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };
+  });
 
   React.useEffect(() => {
+    dispatch(readTree(treeID));
     if (containerRef.current) {
-      initGraph(containerRef.current);
+      initMap(containerRef.current);
     }
-  }, [containerRef]);
+  }, [dispatch]);
+  React.useEffect(() => {
+    if (containerRef.current) {
+      initGraph(containerRef.current, nodeList, linkList);
+    }
+  }, [containerRef, nodeList, linkList]);
 
   return (
     <>
@@ -40,50 +52,18 @@ const TreeMap = styled.div`
   width: 100%;
 `;
 
-const MapWidth = 1200;
-const MapHeight = 700;
+const mapWidth = 1200;
+const mapHeight = 700;
+const linkWidth = "2.5px";
+const linkColor = "#999999"; //colorPalette.gray3;
+const nodeRadius = 20;
 
-function initGraph(container) {
-  const linkWidth = "2.5px";
-  const linkColor = "#999999"; //colorPalette.gray3;
-  const width = MapWidth;
-  const height = MapHeight;
-
-  const nodeRadius = 20;
-  const nodeColor = "#00bebe"; //colorPalette.mainGreen;
-
-  const selectedColor = "#00bebe"; //colorPalette.green2;
-  const selectedNodeStrokeWidth = "8px";
-
-  const selectedNodeList = reduxStore.getState().tree.selectedNodeList;
-
-  const labelSize = "16px"; //fontSize.medium
-  const deleteButtonLength = 15;
-
-  let nodeList = returnNodeList();
-  let linkList = returnLinkList(); //reduxStore.getState().techtree.linkList;
-  //let originalThumbnailURL = reduxStore.getState().techtree.techtreeData
-  //  .thumbnail;
-  //let tempThumbnailURL = reduxStore.getState().techtree.techtreeData.thumbnail;
-  let tempPairingNodes = {
-    startNodeID: null,
-    startX: null,
-    startY: null,
-    endNodeID: null,
-    id: null,
-    endX: null,
-    endY: null,
-  };
-
-  // tree edit 상태도 d3 로 처리하자.
-  // docu edit 은 modal 의 로컬 스테이트로 처리하고.
-  // node 를 클릭하면 실제 DOM을 생성하고 삭제하고 하는 식으로 하자.
-
+function initMap(container) {
   const svg = d3
     .select(container)
     .append("svg")
     .attr("id", "techtreeContainer")
-    .attr("viewBox", `0 0 ${width} ${height}`);
+    .attr("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
 
   // 마우스 드래그할때 나타나는 임시 라인 만들어두기.
   svg
@@ -124,9 +104,48 @@ function initGraph(container) {
     .attr("d", "M0,-5L10,0L0,5")
     .attr("fill", linkColor);
 
-  const linkGroup = svg.append("g").attr("class", "links");
-  const nodeGroup = svg.append("g").attr("class", "nodes");
-  const labelGroup = svg.append("g").attr("class", "labels");
+  svg.append("g").attr("class", "links");
+  svg.append("g").attr("class", "nodes");
+  svg.append("g").attr("class", "labels");
+}
+
+function initGraph(container, nodeList, linkList) {
+  const width = mapWidth;
+  const height = mapHeight;
+
+  const nodeColor = "#00bebe"; //colorPalette.mainGreen;
+
+  const selectedColor = "#00bebe"; //colorPalette.green2;
+  const selectedNodeStrokeWidth = "8px";
+
+  const selectedNodeList = reduxStore.getState().tree.selectedNodeList;
+
+  const labelSize = "16px"; //fontSize.medium
+  const deleteButtonLength = 15;
+
+  //let nodeList = reduxStore.getState().tree.nodeList; //returnNodeList();
+  //let linkList = reduxStore.getState().tree.linkList; //reduxStore.getState().techtree.linkList;
+  //let originalThumbnailURL = reduxStore.getState().techtree.techtreeData
+  //  .thumbnail;
+  //let tempThumbnailURL = reduxStore.getState().techtree.techtreeData.thumbnail;
+  let tempPairingNodes = {
+    startNodeID: null,
+    startX: null,
+    startY: null,
+    endNodeID: null,
+    id: null,
+    endX: null,
+    endY: null,
+  };
+
+  // tree edit 상태도 d3 로 처리하자.
+  // docu edit 은 modal 의 로컬 스테이트로 처리하고.
+  // node 를 클릭하면 실제 DOM을 생성하고 삭제하고 하는 식으로 하자.
+
+  const svg = d3.select(container).select("svg");
+  const linkGroup = svg.select(".links");
+  const nodeGroup = svg.select(".nodes");
+  const labelGroup = svg.select(".labels");
 
   const createdLinkGroup = linkGroup
     .selectAll("line")

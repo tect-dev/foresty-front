@@ -12,8 +12,8 @@ import slug from "remark-slug";
 import { throttle } from "throttle-debounce";
 import { htmlFilter } from "../lib/functions";
 import { prismPlugin } from "../lib/prismPlugin";
-import { prismThemes } from "../lib/prismThemes";
-import { colorPalette, mediaSize } from "../lib/constants";
+import { prismThemes } from "../lib/prismThemes.js";
+import { colorPalette, mediaSize } from "../lib/style";
 
 const MarkdownStyledBlock = styled.div`
   &.monokai {

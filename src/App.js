@@ -14,7 +14,7 @@ function App() {
       <Router history={customHistory}>
         <Switch>
           <Route path="/" exact={true} component={HomePage} />
-          <Route path="/tree" component={TreePage} />
+          <Route path="/tree/:treeID" component={TreePage} />
         </Switch>
       </Router>
     </GlobalWrapper>

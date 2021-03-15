@@ -14,6 +14,21 @@ export const fontSize = {
   xxlarge: "36px",
 };
 
+export const mediaQuery = (maxWidth) => `
+  @media (max-width: ${maxWidth}px)
+`;
+
+export const mediaSize = {
+  xxlarge: mediaQuery(1920),
+  xlarge: mediaQuery(1440),
+  large: mediaQuery(1200),
+  medium: mediaQuery(1024),
+  small: mediaQuery(768),
+  xsmall: mediaQuery(650),
+  xxsmall: mediaQuery(375),
+  custom: mediaQuery,
+};
+
 export const boxShadow = {
   default: "0 4px 16px 0 rgba(0, 0, 0, 0.04)",
 };
