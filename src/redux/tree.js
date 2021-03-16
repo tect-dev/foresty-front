@@ -81,7 +81,6 @@ export const updateDocu = (
     return ele.id !== node.id;
   });
   filteredList.push(changedNode);
-
   dispatch({ type: UPDATE_DOCU_TRY });
   try {
     const res = await axios({
@@ -98,10 +97,47 @@ export const updateDocu = (
   }
 };
 
-export const createNode = () => {};
+const CREATE_NODE_TRY = "tree/CREATE_NODE";
+const CREATE_NODE_SUCCESS = "tree/CREATE_NODE_SUCCESS";
+const CREATE_NODE_FAIL = "tree/CREATE_NODE_FAIL";
+
+export const createNode = (treeID, nodeList) => async (dispatch) => {
+  dispatch({ type: CREATE_NODE_TRY });
+  try {
+    const res = await axios({
+      method: "put",
+      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+      data: {
+        nodeList: JSON.stringify(nodeList),
+      },
+    });
+    dispatch({ type: CREATE_NODE_SUCCESS, nodeList });
+  } catch (e) {
+    dispatch({ type: CREATE_NODE_FAIL });
+  }
+};
 export const deleteNode = () => {};
 
-export const createLink = () => {};
+const CREATE_LINK_TRY = "tree/CREATE_LINK_TRY";
+const CREATE_LINK_SUCCESS = "tree/CREATE_LINK_SUCCESS";
+const CREATE_LINK_FAIL = "tree/CREATE_LINK_FAIL";
+
+export const createLink = (treeID, linkList) => async (dispatch) => {
+  dispatch({ type: CREATE_LINK_TRY });
+  try {
+    const res = await axios({
+      method: "put",
+      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+      data: {
+        linkList: JSON.stringify(linkList),
+      },
+    });
+    dispatch({ type: CREATE_LINK_SUCCESS, linkList });
+  } catch (e) {
+    dispatch({ type: CREATE_LINK_FAIL, error: e });
+  }
+};
+
 export const deleteLink = () => {};
 
 const CHANGE_TREE_TITLE = "tree/CHANGE_TREE_TITLE";
@@ -136,9 +172,26 @@ export const closeNode = (node) => {
   return { type: CLOSE_NODE, node };
 };
 
+const CHANGE_NODE_COLOR = "tree/CHANGE_NODE_COLOR";
+export const changeNodeColor = (nodeID, color) => {
+  return { type: CHANGE_NODE_COLOR, nodeID, color };
+};
+
 export default function tree(state = initialState, action) {
   const prevSelected = state.selectedNodeList;
   switch (action.type) {
+    case CHANGE_NODE_COLOR:
+      const changed = state.nodeList.find((ele) => {
+        return ele.id === action.nodeID;
+      });
+      const tempList = state.nodeList.filter((ele) => {
+        return ele.id !== action.nodeID;
+      });
+      tempList.push({ ...changed, fillColor: action.color });
+      return {
+        ...state,
+        nodeList: tempList,
+      };
     case UPDATE_TREE_TRY:
       return {
         ...state,
@@ -226,6 +279,39 @@ export default function tree(state = initialState, action) {
       return {
         ...state,
         treeTitle: action.treeTitle,
+      };
+    case CREATE_LINK_TRY:
+      return {
+        ...state,
+        loading: true,
+      };
+    case CREATE_LINK_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        linkList: action.linkList,
+      };
+    case CREATE_LINK_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+    case CREATE_NODE_TRY:
+      return {
+        ...state,
+        loading: true,
+      };
+    case CREATE_NODE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        nodeList: action.nodeList,
+      };
+    case CREATE_NODE_FAIL:
+      return {
+        ...state,
+        loading: false,
       };
     default:
       return { ...state };

@@ -7,6 +7,7 @@ import {
 } from "../components/Buttons";
 import { LargeText } from "../components/Texts";
 import { LargeTextInput } from "../components/Inputs";
+import xCircle from "../assets/xCircle.svg";
 
 import React from "react";
 import ReactDOM from "react-dom";
@@ -28,8 +29,13 @@ import {
   finishEditTree,
   updateTree,
   changeTreeTitle,
+  createNode,
+  deleteNode,
+  createLink,
+  deleteLink,
 } from "../redux/tree";
 import Swal from "sweetalert2";
+import { uid } from "uid";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
@@ -56,7 +62,7 @@ export const TreePage = React.memo(({ match }) => {
     if (headerRef && containerRef.current) {
       initGraph(headerRef.current, containerRef.current, nodeList, linkList);
     }
-  }, [headerRef, containerRef, nodeList, linkList]);
+  }, [headerRef, containerRef, nodeList, linkList, isEditingTree]);
 
   const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
 
@@ -94,7 +100,7 @@ const TreeHeader = styled.div`
   //border: 1px solid ${colorPalette.gray3};
   background-color: ${colorPalette.gray0};
   display: flex;
-  flex-wrap: wrap;
+  //flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   padding-left: 1rem;
@@ -171,9 +177,11 @@ function initMap(headerRef, container) {
   svg.append("g").attr("class", "labels");
 }
 
-function initGraph(headerRef, container, nodeList, linkList) {
+function initGraph(headerRef, container, originalNodeList, originalLinkList) {
   const width = mapWidth;
   const height = mapHeight;
+  let nodeList = originalNodeList;
+  let linkList = originalLinkList;
 
   const selectedColor = "#00bebe"; //colorPalette.green2;
   const selectedNodeStrokeWidth = "8px";
@@ -242,19 +250,68 @@ function initGraph(headerRef, container, nodeList, linkList) {
   });
 
   // tree 수정, 삭제, fork, save 버튼 전부 여기서 만들자
+  function initLink() {
+    const createdLinkGroup = linkGroup
+      .selectAll("line")
+      .data(linkList)
+      .join("line")
+      .attr("x1", (d) => d.startX)
+      .attr("y1", (d) => d.startY)
+      .attr("x2", (d) => d.endX)
+      .attr("y2", (d) => d.endY)
+      .attr("class", (d) => d.id)
+      .style("stroke", linkColor)
+      .style("stroke-width", linkWidth)
+      .attr("marker-end", "url(#end-arrow)");
 
-  const createdLinkGroup = linkGroup
-    .selectAll("line")
-    .data(linkList)
-    .join("line")
-    .attr("x1", (d) => d.startX)
-    .attr("y1", (d) => d.startY)
-    .attr("x2", (d) => d.endX)
-    .attr("y2", (d) => d.endY)
-    .attr("class", (d) => d.id)
-    .style("stroke", linkColor)
-    .style("stroke-width", linkWidth)
-    .attr("marker-end", "url(#end-arrow)");
+    linkGroup
+      .selectAll("image")
+      .data(linkList)
+      .join("image")
+      .attr("href", xCircle)
+      .attr("width", deleteButtonLength)
+      .attr("height", deleteButtonLength)
+      .style("fill", "black")
+      .attr("x", (link) => {
+        return (link.startX + link.endX) / 2;
+      })
+      .attr("y", (link) => {
+        return (link.startY + link.endY) / 2;
+      })
+      .attr("class", (d) => {
+        return `delete${d.id}`;
+      })
+      .on("click", async (link) => {
+        const deleteOK = window.confirm("Delete Connection?");
+        if (deleteOK) {
+          //await dispatch(deleteLink(nodeList, linkList, techtreeID, link));
+          //await updateLink();
+          //await changeTreeThumbnail();
+          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+        } else {
+          return;
+        }
+      })
+      .on("touch", async (d) => {
+        const deleteOK = window.confirm(`Delete Connection?`);
+        if (deleteOK) {
+          //await dispatch(deleteLink(nodeList, linkList, techtreeID, link));
+          //await updateLink();
+          //await changeTreeThumbnail();
+          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+        } else {
+          return;
+        }
+      })
+      .attr("display", () => {
+        if (reduxStore.getState().tree.isEditingTree) {
+          return "inline";
+        } else {
+          return "none";
+        }
+      })
+      .style("cursor", "pointer");
+  }
 
   function initNode() {
     const createdNodeGroup = nodeGroup
@@ -304,6 +361,231 @@ function initGraph(headerRef, container, nodeList, linkList) {
         }
       })
       .style("cursor", "pointer");
+
+    if (reduxStore.getState().tree.isEditingTree) {
+      // drag node
+      createdNodeGroup
+        .call(
+          d3
+            .drag()
+            .on("start", (d) => {
+              d3.select(this).raise().classed("active", true);
+            })
+            .on("drag", (node) => {
+              const newLinkList = linkList.map((link) => {
+                if (link.startNodeID === node.id) {
+                  return { ...link, startX: d3.event.x, startY: d3.event.y };
+                } else if (link.endNodeID === node.id) {
+                  return { ...link, endX: d3.event.x, endY: d3.event.y };
+                } else {
+                  return link;
+                }
+              });
+              linkList = newLinkList;
+              initLink();
+              d3.select(this).attr("cx", d3.event.x).attr("cy", d3.event.y);
+              node.x = d3.event.x;
+              node.y = d3.event.y;
+              initNode();
+              initLabel();
+            })
+            .on("end", async (node) => {
+              d3.select(this).classed("active", false);
+              node.x = d3.event.x;
+              node.y = d3.event.y;
+
+              await reduxStore.dispatch(
+                createLink(reduxStore.getState().tree.treeID, linkList)
+              );
+              await reduxStore.dispatch(
+                createNode(reduxStore.getState().tree.treeID, nodeList)
+              );
+              //await updateNode();
+              //await updateLink();
+              //await changeTreeThumbnail();
+              //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+            })
+        )
+        .attr("cx", (d) => {
+          return d.x;
+        })
+        .transition()
+        .duration(130)
+        .ease(d3.easeLinear)
+        .on("start", function repeat() {
+          d3.active(this)
+            .attr("cx", (d) => {
+              return d.x - 1;
+            })
+            .transition()
+            .duration(130)
+            .ease(d3.easeLinear)
+            .attr("cx", (d) => {
+              return d.x + 1;
+            })
+            .transition()
+            .duration(130)
+            .ease(d3.easeLinear)
+            .on("start", repeat);
+        });
+    } else {
+      // connect nodes by link
+      createdNodeGroup
+        .call(
+          d3
+            .drag()
+            .on("start", (d) => {
+              if (
+                true // treeAuthor?.firebaseUid === reduxStore.getState().auth.userID
+              ) {
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x1", d.x)
+                  .attr("y1", d.y);
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x2", d3.event.x)
+                  .attr("y2", d3.event.y);
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .style("opacity", "1")
+                  .attr("display", "inline");
+                tempPairingNodes.startNodeID = d.id;
+                tempPairingNodes.startX = d.x;
+                tempPairingNodes.startY = d.y;
+              }
+            })
+            .on("drag", (node) => {
+              if (
+                d3.select(".tempLine").attr("x1") > 1 &&
+                d3.select(".tempLine").attr("y1") > 1 &&
+                d3.select(".tempLine").style("opacity") != 0
+              ) {
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x2", d3.event.x)
+                  .attr("y2", d3.event.y);
+                initLink();
+                initNode();
+                initLabel();
+              }
+            })
+            .on("end", async (startNode) => {
+              const pointerX = d3.event.x;
+              const pointerY = d3.event.y;
+              nodeList.map(async (node) => {
+                if (
+                  (node.x - pointerX) * (node.x - pointerX) +
+                    (node.y - pointerY) * (node.y - pointerY) <
+                  nodeRadius * nodeRadius
+                ) {
+                  tempPairingNodes.endNodeID = node.id;
+                  tempPairingNodes.endX = node.x;
+                  tempPairingNodes.endY = node.y;
+
+                  // 연결된 노드를 데이터에 반영
+                  if (
+                    tempPairingNodes.startNodeID !==
+                      tempPairingNodes.endNodeID &&
+                    tempPairingNodes.startX !== tempPairingNodes.endX &&
+                    tempPairingNodes.startY !== tempPairingNodes.endY &&
+                    !linkList.find(
+                      (element) =>
+                        element.startNodeID === tempPairingNodes.startNodeID &&
+                        element.endNodeID === tempPairingNodes.endNodeID
+                    ) &&
+                    d3.select(".tempLine").attr("x1") > 1 &&
+                    d3.select(".tempLine").attr("y1") > 1 &&
+                    d3.select(".tempLine").style("opacity") != 0
+                  ) {
+                    tempPairingNodes.id = `link${uid(20)}`;
+                    linkList.push({ ...tempPairingNodes });
+
+                    await reduxStore.dispatch(
+                      createLink(reduxStore.getState().tree.treeID, linkList)
+                    );
+                    await initLink();
+                    //await changeTreeThumbnail();
+                    //await dispatch(
+                    //  updateThumbnail(techtreeID, tempThumbnailURL)
+                    //);
+                    svg.select(".tempLine").style("opacity", "0");
+                  }
+                  svg
+                    .select("g")
+                    .select(".tempLine")
+                    .attr("x1", 0)
+                    .attr("y1", 0)
+                    .attr("x2", 0)
+                    .attr("y2", 0);
+                  tempPairingNodes = {};
+                }
+              });
+              svg.select("g").select(".tempLine").attr("x1", 0).attr("y1", 0);
+              svg.select(".tempLine").style("opacity", "0");
+            })
+        )
+        .style("stroke-width", 0)
+        .transition()
+        .duration(500)
+        .ease(d3.easeLinear)
+        .style("stroke-width", selectedNodeStrokeWidth);
+    }
+
+    // 노드 삭제용 버튼 만들기
+    nodeGroup
+      .selectAll("image")
+      .data(nodeList)
+      .join("image")
+      .attr("href", xCircle)
+      .attr("width", deleteButtonLength)
+      .attr("height", deleteButtonLength)
+      .style("fill", (d) => d.fillColor)
+      .attr("x", (d) => {
+        return d.x - nodeRadius * 1.7;
+      })
+      .attr("y", (d) => {
+        return d.y - nodeRadius * 1.7;
+      })
+      .attr("class", (d) => {
+        return d.id;
+      })
+      .attr("display", () => {
+        if (reduxStore.getState().tree.isEditingTree) {
+          return "inline";
+        } else {
+          return "none";
+        }
+      })
+      .on("click", async (d) => {
+        const deleteOK = window.confirm(`Delete ${d.name} Node?`);
+        if (deleteOK) {
+          //await dispatch(deleteNode(nodeList, linkList, techtreeID, d));
+          //await updateNode();
+          //await updateLink();
+          //await changeTreeThumbnail();
+          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+        } else {
+          return;
+        }
+      })
+      .on("touch", async (d) => {
+        const deleteOK = window.confirm(`Delete ${d.name} Node?`);
+        if (deleteOK) {
+          //await dispatch(deleteNode(nodeList, linkList, techtreeID, d));
+          //await updateNode();
+          //await updateLink();
+          //await changeTreeThumbnail();
+          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+        } else {
+          return;
+        }
+      })
+      .style("cursor", "pointer");
   }
   function initLabel() {
     labelGroup.selectAll("*").remove();
@@ -325,14 +607,39 @@ function initGraph(headerRef, container, nodeList, linkList) {
       })
       .style("font-size", labelSize)
       .style("user-select", "none")
-      .style(
-        "text-shadow",
-        "1px 1px 1px #ffffff"
-        //'-3px 0 #F2F1F6, 0 3px #F2F1F6, 3px 0 #F2F1F6, 0 -3px #F2F1F6'
-      );
+      .style("text-shadow", "1px 1px 1px #ffffff");
   }
 
+  svg.on("dblclick", async () => {
+    if (true) {
+      //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
+      const offsetElement = document.getElementById("treeContainer");
+      const clientRect = offsetElement.getBoundingClientRect();
+      const ratioFactor = width / clientRect.width;
+      const createdNode = {
+        id: `node${uid(20)}`,
+        name: "New Node",
+        x: d3.event.offsetX * ratioFactor,
+        y: d3.event.offsetY * ratioFactor,
+        radius: nodeRadius,
+        body: "New Document",
+        hashtags: [],
+        fillColor: "#69bc69",
+        parentNodeID: [],
+        childNodeID: [],
+      };
+      nodeList = [...nodeList, createdNode];
+      await reduxStore.dispatch(
+        createNode(reduxStore.getState().tree.treeID, nodeList)
+      );
+      initNode();
+      //await changeTreeThumbnail()
+      //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL))
+    }
+  });
+
   reduxStore.subscribe(initNode);
+  initLink();
   initNode();
   initLabel();
 }

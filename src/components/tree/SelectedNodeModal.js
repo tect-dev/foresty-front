@@ -7,15 +7,12 @@ import { LargeText } from "../Texts";
 import React from "react";
 import styled from "styled-components";
 import { reduxStore } from "../../index";
-import { closeNode } from "../../redux/tree";
+import { closeNode, updateDocu, changeNodeColor } from "../../redux/tree";
 import { colorPalette } from "../../lib/style";
-import { updateDocu } from "../../redux/tree";
 
 export const SelectedNodeModal = React.memo(({ node }) => {
   const [title, setTitle] = React.useState(node.name);
   const [text, setText] = React.useState(node.body);
-  // 노드 컬러 클릭시 변경되는건 changeColor 라는 걸로 따로 만들자.
-  // 로컬 color도 같이 변하게 한다음에, docuUpdate에 같이 보내줘야지/
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
   const [isEditing, setIsEditing] = React.useState(false);
 
@@ -124,6 +121,52 @@ export const SelectedNodeModal = React.memo(({ node }) => {
           </DefaultButton>
         </div>
       </DocuHeader>
+      {isEditing ? (
+        <NodeColorButtonArea>
+          <NodeColorButton
+            style={{ background: colorPalette.red7 }}
+            onClick={() => {
+              setNodeColor(colorPalette.red7);
+              reduxStore.dispatch(changeNodeColor(node.id, colorPalette.red7));
+            }}
+          ></NodeColorButton>
+          <NodeColorButton
+            style={{ background: colorPalette.yellow5 }}
+            onClick={() => {
+              setNodeColor(colorPalette.yellow5);
+              reduxStore.dispatch(
+                changeNodeColor(node.id, colorPalette.yellow5)
+              );
+            }}
+          ></NodeColorButton>
+          <NodeColorButton
+            style={{ background: colorPalette.green5 }}
+            onClick={() => {
+              setNodeColor(colorPalette.green5);
+              reduxStore.dispatch(
+                changeNodeColor(node.id, colorPalette.green5)
+              );
+            }}
+          ></NodeColorButton>
+          <NodeColorButton
+            style={{ background: colorPalette.blue5 }}
+            onClick={() => {
+              setNodeColor(colorPalette.blue5);
+              reduxStore.dispatch(changeNodeColor(node.id, colorPalette.blue5));
+            }}
+          ></NodeColorButton>
+          <NodeColorButton
+            style={{ background: colorPalette.violet5 }}
+            onClick={() => {
+              setNodeColor(colorPalette.violet5);
+              reduxStore.dispatch(
+                changeNodeColor(node.id, colorPalette.violet5)
+              );
+            }}
+          ></NodeColorButton>
+        </NodeColorButtonArea>
+      ) : null}
+
       <DocuBodyArea>
         {isEditing ? (
           <MarkdownEditor bindingText={text} bindingSetter={setText} />
@@ -153,4 +196,19 @@ const DocuHeader = styled.div`
 
 const DocuBodyArea = styled.div`
   padding: 2rem;
+`;
+
+export const NodeColorButtonArea = styled.div`
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 10px;
+`;
+
+export const NodeColorButton = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  border: none;
+  margin-left: 3px;
+  margin-right: 3px;
 `;

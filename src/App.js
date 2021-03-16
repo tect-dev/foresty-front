@@ -10,14 +10,14 @@ const customHistory = createBrowserHistory();
 
 function App() {
   return (
-    <GlobalWrapper>
-      <Router history={customHistory}>
+    <Router history={customHistory}>
+      <GlobalWrapper>
         <Switch>
           <Route path="/" exact={true} component={HomePage} />
           <Route path="/tree/:treeID" component={TreePage} />
         </Switch>
-      </Router>
-    </GlobalWrapper>
+      </GlobalWrapper>
+    </Router>
   );
 }
 
