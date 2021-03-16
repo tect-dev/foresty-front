@@ -10,7 +10,11 @@ const initialState = {
   treeAuthorNickname: "",
   loading: false,
   error: null,
+  isEditingTree: false,
 };
+
+const EDIT_TREE = "tree/EDIT_TREE";
+const FINISH_EDIT_TREE = "tree/FINISH_EDIT_TREE";
 
 const SELECT_NODE = "tree/SELECT_NODE";
 const CLOSE_NODE = "tree/CLOSE_NODE";
@@ -27,6 +31,13 @@ const UPDATE_DOCU_TRY = "tree/UPDATE_DOCU_TRY";
 const UPDATE_DOCU_SUCCESS = "tree/UPDATE_DOCU_SUCCESS";
 const UPDATE_DOCU_FAIL = "tree/UPDATE_DOCU_FAIL";
 
+export const editTree = () => {
+  return { type: EDIT_TREE };
+};
+export const finishEditTree = () => {
+  return { type: FINISH_EDIT_TREE };
+};
+
 export const readTree = (treeID) => async (dispatch) => {
   dispatch({ type: READ_TREE_TRY });
   console.log("treeID: ", treeID);
@@ -41,7 +52,7 @@ export const readTree = (treeID) => async (dispatch) => {
       type: READ_TREE_SUCCESS,
       nodeList: parsedNodeList,
       linkList: parsedLinkList,
-      treeTitle: res.data.techtreeTitle,
+      treeTitle: res.data.title,
       treeAuthorID: res.data.author.firebaseUid,
       treeAuthorNickname: res.data.author.displayName,
       treeID,
@@ -52,10 +63,20 @@ export const readTree = (treeID) => async (dispatch) => {
   }
 };
 
-export const updateDocu = (treeID, nodeList, node, text, nodeColor) => async (
-  dispatch
-) => {
-  const changedNode = { ...node, body: text, fillColor: nodeColor };
+export const updateDocu = (
+  treeID,
+  nodeList,
+  node,
+  title,
+  text,
+  nodeColor
+) => async (dispatch) => {
+  const changedNode = {
+    ...node,
+    name: title,
+    body: text,
+    fillColor: nodeColor,
+  };
   const filteredList = nodeList.filter((ele) => {
     return ele.id !== node.id;
   });
@@ -83,7 +104,30 @@ export const deleteNode = () => {};
 export const createLink = () => {};
 export const deleteLink = () => {};
 
-export const updateTree = () => {};
+const CHANGE_TREE_TITLE = "tree/CHANGE_TREE_TITLE";
+export const changeTreeTitle = (treeTitle) => {
+  return { type: CHANGE_TREE_TITLE, treeTitle };
+};
+
+export const updateTree = (treeID, treeTitle, thumbnail) => async (
+  dispatch
+) => {
+  dispatch({ type: UPDATE_TREE_TRY });
+  try {
+    const res = await axios({
+      type: "put",
+      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+      data: {
+        title: treeTitle,
+        thumbnail: thumbnail,
+      },
+    });
+    dispatch({ type: UPDATE_TREE_SUCCESS, treeTitle });
+  } catch (e) {
+    console.log("error: ", e);
+    dispatch({ type: UPDATE_TREE_FAIL, error: e });
+  }
+};
 
 export const selectNode = (node) => {
   return { type: SELECT_NODE, node };
@@ -95,6 +139,33 @@ export const closeNode = (node) => {
 export default function tree(state = initialState, action) {
   const prevSelected = state.selectedNodeList;
   switch (action.type) {
+    case UPDATE_TREE_TRY:
+      return {
+        ...state,
+        loading: true,
+      };
+    case UPDATE_TREE_SUCCESS:
+      return {
+        ...state,
+        treeTitle: action.treeTitle,
+        loading: false,
+      };
+    case UPDATE_TREE_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+    case EDIT_TREE:
+      return {
+        ...state,
+        isEditingTree: true,
+      };
+    case FINISH_EDIT_TREE:
+      return {
+        ...state,
+        isEditingTree: false,
+      };
     case UPDATE_DOCU_TRY:
       return {
         ...state,
@@ -116,6 +187,7 @@ export default function tree(state = initialState, action) {
       return {
         ...state,
         loading: true,
+        isEditingTree: false,
       };
     case READ_TREE_SUCCESS:
       return {
@@ -150,6 +222,11 @@ export default function tree(state = initialState, action) {
       const thisIs = document.getElementById(action.node.id);
       thisIs.remove();
       return { ...state, selectedNodeList: removed };
+    case CHANGE_TREE_TITLE:
+      return {
+        ...state,
+        treeTitle: action.treeTitle,
+      };
     default:
       return { ...state };
   }

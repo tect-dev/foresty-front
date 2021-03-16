@@ -1,4 +1,12 @@
 import { SelectedNodeModal } from "../components/tree/SelectedNodeModal";
+import {
+  DoneIcon,
+  EditIcon,
+  TrashIcon,
+  DefaultButton,
+} from "../components/Buttons";
+import { LargeText } from "../components/Texts";
+import { LargeTextInput } from "../components/Inputs";
 
 import React from "react";
 import ReactDOM from "react-dom";
@@ -12,34 +20,88 @@ import {
 import { colorPalette, boxShadow } from "../lib/style";
 import { reduxStore } from "../index";
 import { useSelector, useDispatch } from "react-redux";
-import { selectNode, closeNode, readTree } from "../redux/tree";
+import {
+  selectNode,
+  closeNode,
+  readTree,
+  editTree,
+  finishEditTree,
+  updateTree,
+  changeTreeTitle,
+} from "../redux/tree";
+import Swal from "sweetalert2";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
+  const headerRef = React.useRef(null);
   const dispatch = useDispatch();
   const { treeID } = match.params;
   const { nodeList, linkList } = useSelector((state) => {
     return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };
   });
+  const { treeTitle } = useSelector((state) => {
+    return { treeTitle: state.tree.treeTitle };
+  });
+  const { isEditingTree } = useSelector((state) => {
+    return { isEditingTree: state.tree.isEditingTree };
+  });
 
   React.useEffect(() => {
     dispatch(readTree(treeID));
-    if (containerRef.current) {
-      initMap(containerRef.current);
+    if (headerRef.current && containerRef.current) {
+      initMap(headerRef.current, containerRef.current);
     }
   }, [dispatch]);
   React.useEffect(() => {
-    if (containerRef.current) {
-      initGraph(containerRef.current, nodeList, linkList);
+    if (headerRef && containerRef.current) {
+      initGraph(headerRef.current, containerRef.current, nodeList, linkList);
     }
-  }, [containerRef, nodeList, linkList]);
+  }, [headerRef, containerRef, nodeList, linkList]);
+
+  const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
 
   return (
     <>
+      <TreeHeader ref={headerRef}>
+        {isEditingTree ? (
+          <LargeTextInput
+            value={treeTitle}
+            onChange={(e) => {
+              dispatch(changeTreeTitle(e.target.value));
+            }}
+          />
+        ) : (
+          <LargeText>{treeTitle}</LargeText>
+        )}
+
+        <div>
+          <DefaultButton id="treeEditButton">
+            {isEditingTree ? <DoneIcon /> : <EditIcon />}
+          </DefaultButton>
+
+          <DefaultButton id="treeDelete">
+            <TrashIcon />
+          </DefaultButton>
+        </div>
+      </TreeHeader>
       <TreeMap ref={containerRef} />
     </>
   );
 });
+
+const TreeHeader = styled.div`
+  border-radius: 3px;
+  //border: 1px solid ${colorPalette.gray3};
+  background-color: ${colorPalette.gray0};
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 10px;
+  padding-top: 10px;
+`;
 
 const TreeMap = styled.div`
   border-radius: 3px;
@@ -58,11 +120,11 @@ const linkWidth = "2.5px";
 const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
-function initMap(container) {
+function initMap(headerRef, container) {
   const svg = d3
     .select(container)
     .append("svg")
-    .attr("id", "techtreeContainer")
+    .attr("id", "treeContainer")
     .attr("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
 
   // 마우스 드래그할때 나타나는 임시 라인 만들어두기.
@@ -109,11 +171,9 @@ function initMap(container) {
   svg.append("g").attr("class", "labels");
 }
 
-function initGraph(container, nodeList, linkList) {
+function initGraph(headerRef, container, nodeList, linkList) {
   const width = mapWidth;
   const height = mapHeight;
-
-  const nodeColor = "#00bebe"; //colorPalette.mainGreen;
 
   const selectedColor = "#00bebe"; //colorPalette.green2;
   const selectedNodeStrokeWidth = "8px";
@@ -142,10 +202,46 @@ function initGraph(container, nodeList, linkList) {
   // docu edit 은 modal 의 로컬 스테이트로 처리하고.
   // node 를 클릭하면 실제 DOM을 생성하고 삭제하고 하는 식으로 하자.
 
+  //const header = d3.select(headerRef);
+  //header.append("text").text("hello");
+
   const svg = d3.select(container).select("svg");
   const linkGroup = svg.select(".links");
   const nodeGroup = svg.select(".nodes");
   const labelGroup = svg.select(".labels");
+
+  const treeEditButton = d3.select("#treeEditButton").on("click", () => {
+    if (reduxStore.getState().tree.isEditingTree) {
+      // 썸네일도 첨부해야함.
+      const svgDOM = document.getElementById("treeContainer"); //svg.node();
+      console.log(svg.node());
+      console.log("treeTitle: ", reduxStore.getState().tree.treeTitle);
+      if (svgDOM) {
+        const source = new XMLSerializer().serializeToString(svgDOM);
+        var decoded = unescape(encodeURIComponent(source));
+        // Now we can use btoa to convert the svg to base64
+        const base64 = btoa(decoded);
+        const thumbnailURL = `data:image/svg+xml;base64,${base64}`;
+        reduxStore.dispatch(
+          updateTree(
+            reduxStore.getState().tree.treeID,
+            reduxStore.getState().tree.treeTitle,
+            thumbnailURL
+          )
+        );
+      }
+
+      reduxStore.dispatch(finishEditTree());
+    } else {
+      reduxStore.dispatch(editTree());
+    }
+  });
+
+  const treeDeleteButton = d3.select("#treeDelete").on("click", () => {
+    Swal.fire("삭제합니까?");
+  });
+
+  // tree 수정, 삭제, fork, save 버튼 전부 여기서 만들자
 
   const createdLinkGroup = linkGroup
     .selectAll("line")
@@ -200,7 +296,6 @@ function initGraph(container, nodeList, linkList) {
           reduxStore.dispatch(selectNode(node));
           const d = document.createElement("div");
           d.id = node.id;
-          //document.getElementsByTagName("body")[0].appendChild(d);
           document.getElementById("root").appendChild(d);
           ReactDOM.render(
             <SelectedNodeModal node={node} />,

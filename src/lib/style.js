@@ -39,6 +39,8 @@ export const hoverAction = {
 };
 
 export const colorPalette = {
+  powerGreen: "#7fff00",
+  powerSky: "#7fffff",
   /* violet */
   violet0: "#f3f0ff",
   violet1: "#e5dbff",

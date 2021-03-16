@@ -278,7 +278,7 @@ export const MarkdownEditor = ({
 };
 
 MarkdownEditor.defaultProps = {
-  width: "600px",
+  width: "100%",
   height: "400px",
 };
 
@@ -305,8 +305,9 @@ const StyledTextarea = styled.textarea`
   border: none;
   box-sizing: border-box;
   font-size: ${fontSize.medium};
-  resize: none;
-  padding: 10px;
+  width: 100%;
+  //resize: none;
+  //padding: 10px;
   background-color: transparent;
   //background-color: #f8f9fa !important;
   &:active {

@@ -33,6 +33,7 @@
     "sanitize-html": "^2.3.2",
     "styled-component": "^2.8.0",
     "styled-components": "^5.2.1",
+    "sweetalert2": "^10.15.5",
     "throttle-debounce": "^3.0.1",
     "typescript": "^4.2.3",
     "web-vitals": "^1.1.0"
