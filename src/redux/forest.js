@@ -1,13 +1,8 @@
 import { firebaseInstance, authService, db } from "../lib/firebase";
 import axios from "axios";
 import { uid } from "uid";
-//const treeRef = db.collection('trees').doc(techtreeID)
-//const res = await treeRef.update({
-//  title: techtreeTitle,
-//  nodeList: JSON.stringify(nodeList),
-//  linkList: JSON.stringify(linkList),
-//  thumbnail: thumbnailURL,
-//})
+import { whiteURL } from "../lib/constants";
+
 const initialState = {
   treeList: [],
   loading: false,
@@ -57,7 +52,7 @@ export const createTree = (myID, myNickname) => async (dispatch) => {
         treeAuthorID: myID,
         treeAuthorNickname: myNickname,
         treeID: uid24,
-        thumbnail: "",
+        thumbnail: whiteURL,
         createdAt: firebaseInstance.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {

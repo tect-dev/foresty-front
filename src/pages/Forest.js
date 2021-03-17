@@ -31,19 +31,19 @@ export const ForestPage = ({ match }) => {
           새나무 심기
         </button>
       </ForestHeader>
-      <ForestGrid>
+      <GridWrapper>
         {treeList.map((ele, idx) => {
           return (
             <TreeCard
               key={idx}
               treeID={ele.treeID}
-              treeTitle={ele.treeTitle}
+              treeTitle={ele.title}
               thumbnail={ele.thumbnail}
               //createdAt={ele.createdAt}
             ></TreeCard>
           );
         })}
-      </ForestGrid>
+      </GridWrapper>
     </div>
   );
 };
@@ -57,7 +57,7 @@ const ForestHeader = styled.div`
 const ForestGrid = styled(GridWrapper)`
   margin-left: 10vw;
   margin-right: 10vw;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 3rem;
   grid-auto-columns: minmax(125px, auto);
   grid-auto-rows: minmax(125px, auto);

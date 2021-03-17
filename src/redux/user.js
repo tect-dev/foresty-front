@@ -1,7 +1,7 @@
 const initialState = {
   userID: "",
   userNickname: "",
-  myID: "So1kSKj6UlUE3QBAXCvstos7Bu22",
+  myID: null,
   myNickname: "",
 };
 
