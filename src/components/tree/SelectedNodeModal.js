@@ -9,8 +9,9 @@ import styled from "styled-components";
 import { reduxStore } from "../../index";
 import { closeNode, updateDocu, changeNodeColor } from "../../redux/tree";
 import { colorPalette } from "../../lib/style";
+import { changeZIndex } from "../../lib/functions";
 
-export const SelectedNodeModal = React.memo(({ node }) => {
+export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [title, setTitle] = React.useState(node.name);
   const [text, setText] = React.useState(node.body);
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
@@ -25,16 +26,17 @@ export const SelectedNodeModal = React.memo(({ node }) => {
   }
   function handleDrag(e) {
     //e.preventDefault();
-    e.target.style.position = "absolute";
-    e.target.style.left = e.clientX - relativeX + "px";
-    e.target.style.top = e.clientY - relativeY + "px";
+    // e.target.style.position = "absolute";
+    // e.target.style.left = e.clientX - relativeX + "px";
+    // e.target.style.top = e.clientY - relativeY + "px";
   }
 
   function handleDragEnd(e) {
     e.preventDefault();
     e.target.style.position = "absolute";
+    const scrolledTopLength = window.pageYOffset;
     e.target.style.left = e.clientX - relativeX + "px";
-    e.target.style.top = e.clientY - relativeY + "px";
+    e.target.style.top = scrolledTopLength + e.clientY - relativeY + "px";
   }
 
   function finishDocuEdit() {
@@ -50,29 +52,18 @@ export const SelectedNodeModal = React.memo(({ node }) => {
     );
   }
 
-  function changeZIndex(e) {
-    if (e.target) {
-      const modalList = document.getElementsByClassName("nodeModal");
-      const zIndexList = Array.from(modalList).map((ele) => {
-        return ele.style.zIndex;
-      });
-      const max = Math.max(...zIndexList);
-      const modalDOM = document.getElementById(`modal${node.id}`);
-      if (modalDOM) {
-        modalDOM.style.zIndex = max + 1;
-      }
-    }
-  }
-
   return (
     <ModalWrapper
       draggable="true"
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
-      onClick={changeZIndex}
+      onClick={(e) => {
+        changeZIndex(e, node);
+      }}
       className="nodeModal"
       id={`modal${node.id}`}
+      style={{ zIndex: defaultZ }}
     >
       <DocuHeader>
         <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
@@ -179,7 +170,7 @@ export const SelectedNodeModal = React.memo(({ node }) => {
 
 const ModalWrapper = styled.div`
   position: absolute;
-  z-index: 100;
+  //  z-index: 100;
   background-color: #ffffff;
   border: 1px solid ${colorPalette.gray3};
 

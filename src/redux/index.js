@@ -1,10 +1,12 @@
 import { combineReducers } from "redux";
 import tree from "./tree";
 import user from "./user";
+import forest from "./forest";
 
 const rootReducer = combineReducers({
   user,
   tree,
+  forest,
 });
 
 // reducer는 export default 해야된다는데 why??

@@ -1,4 +1,19 @@
 import sanitize from "sanitize-html";
+
+export function changeZIndex(e, node) {
+  if (e.target) {
+    const modalList = document.getElementsByClassName("nodeModal");
+    const zIndexList = Array.from(modalList).map((ele) => {
+      return ele.style.zIndex;
+    });
+    const max = Math.max(...zIndexList);
+    const modalDOM = document.getElementById(`modal${node.id}`);
+    if (modalDOM) {
+      modalDOM.style.zIndex = max + 1;
+    }
+  }
+}
+
 const tags = [
   "math",
   "annotation",

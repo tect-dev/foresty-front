@@ -1,4 +1,5 @@
 import axios from "axios";
+import { authService, db } from "../lib/firebase";
 
 const initialState = {
   treeID: "",
@@ -38,23 +39,34 @@ export const finishEditTree = () => {
   return { type: FINISH_EDIT_TREE };
 };
 
-export const readTree = (treeID) => async (dispatch) => {
+export const readTree = (userID, treeID) => async (dispatch) => {
   dispatch({ type: READ_TREE_TRY });
-  console.log("treeID: ", treeID);
+
   try {
-    const res = await axios({
-      method: "get",
-      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
-    });
-    const parsedNodeList = JSON.parse(res.data.nodeList);
-    const parsedLinkList = JSON.parse(res.data.linkList);
+    //const res = await axios({
+    //  method: "get",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //});
+    //const parsedNodeList = JSON.parse(res.data.nodeList);
+    //const parsedLinkList = JSON.parse(res.data.linkList);
+    // const treeTitle = res.data.title
+    // const treeAuthorID: res.data.author.firebaseUid,
+    // const treeAuthorNickname: res.data.author.dispalyName
+    const treeDoc = await db
+      .collection("users")
+      .doc(userID)
+      .collection("trees")
+      .doc(treeID)
+      .get();
+    const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
+    const parsedLinkList = JSON.parse(treeDoc.data().linkList);
     dispatch({
       type: READ_TREE_SUCCESS,
       nodeList: parsedNodeList,
       linkList: parsedLinkList,
-      treeTitle: res.data.title,
-      treeAuthorID: res.data.author.firebaseUid,
-      treeAuthorNickname: res.data.author.displayName,
+      treeTitle: treeDoc.data().title,
+      treeAuthorID: treeDoc.data().treeAuthorID,
+      treeAuthorNickname: treeDoc.data().treeAuthorNickname,
       treeID,
     });
   } catch (error) {
@@ -83,12 +95,21 @@ export const updateDocu = (
   filteredList.push(changedNode);
   dispatch({ type: UPDATE_DOCU_TRY });
   try {
-    const res = await axios({
-      method: "put",
-      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
-      data: {
-        nodeList: JSON.stringify(filteredList),
-      },
+    //const res = await axios({
+    //  method: "put",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //  data: {
+    //    nodeList: JSON.stringify(filteredList),
+    //  },
+    //});
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      nodeList: JSON.stringify(nodeList),
     });
     dispatch({ type: UPDATE_DOCU_SUCCESS, nodeList: filteredList });
   } catch (e) {
@@ -104,33 +125,102 @@ const CREATE_NODE_FAIL = "tree/CREATE_NODE_FAIL";
 export const createNode = (treeID, nodeList) => async (dispatch) => {
   dispatch({ type: CREATE_NODE_TRY });
   try {
-    const res = await axios({
-      method: "put",
-      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
-      data: {
-        nodeList: JSON.stringify(nodeList),
-      },
+    //const res = await axios({
+    //  method: "put",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //  data: {
+    //    nodeList: JSON.stringify(nodeList),
+    //  },
+    //});
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      nodeList: JSON.stringify(nodeList),
     });
     dispatch({ type: CREATE_NODE_SUCCESS, nodeList });
   } catch (e) {
     dispatch({ type: CREATE_NODE_FAIL });
   }
 };
-export const deleteNode = () => {};
+
+const DELETE_NODE_TRY = "tree/DELETE_NODE_TRY";
+const DELETE_NODE_SUCCESS = "tree/DELETE_NODE_SUCCESS";
+const DELETE_NODE_FAIL = "tree/DELETE_NODE_FAIL";
+export const deleteNode = (treeID, nodeList, linkList, node) => async (
+  dispatch
+) => {
+  dispatch({ type: DELETE_NODE_TRY });
+  try {
+    const deletionBinaryList = linkList.map((link) => {
+      if (link.startNodeID === node.id) {
+        return 0;
+      } else if (link.endNodeID === node.id) {
+        return 0;
+      } else {
+        return 1;
+      }
+    });
+    // 이러면 linkList 랑 원소의 갯수가 같은 0101010 배열이 나올것.
+    const newLinkList = linkList.filter((link, index) => {
+      return deletionBinaryList[index] === 1;
+    });
+    const newNodeList = nodeList.filter((ele, index) => {
+      return ele.id !== node.id;
+    });
+    //const res = await axios({
+    //  method: "put",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //  headers: { "Content-Type": "application/json" },
+    //  data: {
+    //    nodeList: JSON.stringify(newNodeList),
+    //    linkList: JSON.stringify(newLinkList),
+    //  },
+    //});
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      nodeList: JSON.stringify(newNodeList),
+      linkList: JSON.stringify(newLinkList),
+    });
+    dispatch({
+      type: DELETE_NODE_SUCCESS,
+      nodeList: newNodeList,
+      linkList: newLinkList,
+    });
+  } catch (e) {
+    dispatch({ type: DELETE_NODE_FAIL, error: e });
+  }
+};
 
 const CREATE_LINK_TRY = "tree/CREATE_LINK_TRY";
 const CREATE_LINK_SUCCESS = "tree/CREATE_LINK_SUCCESS";
 const CREATE_LINK_FAIL = "tree/CREATE_LINK_FAIL";
-
 export const createLink = (treeID, linkList) => async (dispatch) => {
   dispatch({ type: CREATE_LINK_TRY });
   try {
-    const res = await axios({
-      method: "put",
-      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
-      data: {
-        linkList: JSON.stringify(linkList),
-      },
+    //const res = await axios({
+    //  method: "put",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //  data: {
+    //    linkList: JSON.stringify(linkList),
+    //  },
+    //});
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      linkList: JSON.stringify(linkList),
     });
     dispatch({ type: CREATE_LINK_SUCCESS, linkList });
   } catch (e) {
@@ -138,7 +228,36 @@ export const createLink = (treeID, linkList) => async (dispatch) => {
   }
 };
 
-export const deleteLink = () => {};
+const DELETE_LINK_TRY = "tree/DELETE_LINK_TRY";
+const DELETE_LINK_SUCCESS = "tree/DELETE_LINK_SUCCESS";
+const DELETE_LINK_FAIL = "tree/DELETE_LINK_FAIL";
+export const deleteLink = (treeID, linkList, link) => async (dispatch) => {
+  dispatch({ type: DELETE_LINK_TRY });
+  const newLinkList = linkList.filter((ele) => {
+    return ele.id !== link.id;
+  });
+  try {
+    // axios({
+    //   method: "put",
+    //   url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //   data: {
+    //     linkList: JSON.stringify(newLinkList),
+    //   },
+    // });
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      linkList: JSON.stringify(newLinkList),
+    });
+    dispatch({ type: DELETE_LINK_SUCCESS, linkList: newLinkList });
+  } catch (e) {
+    dispatch({ type: DELETE_LINK_FAIL, error: e });
+  }
+};
 
 const CHANGE_TREE_TITLE = "tree/CHANGE_TREE_TITLE";
 export const changeTreeTitle = (treeTitle) => {
@@ -150,13 +269,23 @@ export const updateTree = (treeID, treeTitle, thumbnail) => async (
 ) => {
   dispatch({ type: UPDATE_TREE_TRY });
   try {
-    const res = await axios({
-      type: "put",
-      url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
-      data: {
-        title: treeTitle,
-        thumbnail: thumbnail,
-      },
+    //const res = await axios({
+    //  method: "put",
+    //  url: `${process.env.REACT_APP_BACKEND_URL}/techtree/${treeID}`,
+    //  data: {
+    //    title: treeTitle,
+    //    thumbnail: thumbnail,
+    //  },
+    //});
+    const user = authService.currentUser;
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID);
+    const res = await treeRef.update({
+      title: treeTitle,
+      thumbnail: thumbnail,
     });
     dispatch({ type: UPDATE_TREE_SUCCESS, treeTitle });
   } catch (e) {
@@ -312,6 +441,41 @@ export default function tree(state = initialState, action) {
       return {
         ...state,
         loading: false,
+      };
+    case DELETE_LINK_TRY:
+      return {
+        ...state,
+        loading: true,
+      };
+    case DELETE_LINK_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        linkList: action.linkList,
+      };
+    case DELETE_LINK_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+    case DELETE_NODE_TRY:
+      return {
+        ...state,
+        loading: true,
+      };
+    case DELETE_NODE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        nodeList: action.nodeList,
+        linkList: action.linkList,
+      };
+    case DELETE_NODE_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
       };
     default:
       return { ...state };

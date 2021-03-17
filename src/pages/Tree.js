@@ -33,6 +33,7 @@ import {
   deleteNode,
   createLink,
   deleteLink,
+  //finishEditTree,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
@@ -42,6 +43,9 @@ export const TreePage = React.memo(({ match }) => {
   const headerRef = React.useRef(null);
   const dispatch = useDispatch();
   const { treeID } = match.params;
+  const { myID } = useSelector((state) => {
+    return { myID: state.user.myID };
+  });
   const { nodeList, linkList } = useSelector((state) => {
     return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };
   });
@@ -53,11 +57,13 @@ export const TreePage = React.memo(({ match }) => {
   });
 
   React.useEffect(() => {
-    dispatch(readTree(treeID));
     if (headerRef.current && containerRef.current) {
       initMap(headerRef.current, containerRef.current);
     }
-  }, [dispatch]);
+  }, []);
+  React.useEffect(() => {
+    dispatch(readTree(myID, treeID));
+  }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (headerRef && containerRef.current) {
       initGraph(headerRef.current, containerRef.current, nodeList, linkList);
@@ -103,10 +109,14 @@ const TreeHeader = styled.div`
   //flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 10vw;
+  padding-right: 10vw;
   padding-bottom: 10px;
   padding-top: 10px;
+  @media (max-width: 768px) {
+    padding-left: 5vw;
+    padding-right: 5vw;
+  }
 `;
 
 const TreeMap = styled.div`
@@ -221,29 +231,30 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
   const treeEditButton = d3.select("#treeEditButton").on("click", () => {
     if (reduxStore.getState().tree.isEditingTree) {
       // 썸네일도 첨부해야함.
-      const svgDOM = document.getElementById("treeContainer"); //svg.node();
-      console.log(svg.node());
-      console.log("treeTitle: ", reduxStore.getState().tree.treeTitle);
-      if (svgDOM) {
-        const source = new XMLSerializer().serializeToString(svgDOM);
-        var decoded = unescape(encodeURIComponent(source));
-        // Now we can use btoa to convert the svg to base64
-        const base64 = btoa(decoded);
-        const thumbnailURL = `data:image/svg+xml;base64,${base64}`;
-        reduxStore.dispatch(
-          updateTree(
-            reduxStore.getState().tree.treeID,
-            reduxStore.getState().tree.treeTitle,
-            thumbnailURL
-          )
-        );
-      }
-
+      changeTreeInfo();
       reduxStore.dispatch(finishEditTree());
     } else {
       reduxStore.dispatch(editTree());
     }
   });
+
+  function changeTreeInfo() {
+    const svgDOM = document.getElementById("treeContainer"); //svg.node();
+    if (svgDOM) {
+      const source = new XMLSerializer().serializeToString(svgDOM);
+      var decoded = unescape(encodeURIComponent(source));
+      // Now we can use btoa to convert the svg to base64
+      const base64 = btoa(decoded);
+      const thumbnailURL = `data:image/svg+xml;base64,${base64}`;
+      reduxStore.dispatch(
+        updateTree(
+          reduxStore.getState().tree.treeID,
+          reduxStore.getState().tree.treeTitle,
+          thumbnailURL
+        )
+      );
+    }
+  }
 
   const treeDeleteButton = d3.select("#treeDelete").on("click", () => {
     Swal.fire("삭제합니까?");
@@ -284,21 +295,23 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       .on("click", async (link) => {
         const deleteOK = window.confirm("Delete Connection?");
         if (deleteOK) {
-          //await dispatch(deleteLink(nodeList, linkList, techtreeID, link));
-          //await updateLink();
-          //await changeTreeThumbnail();
-          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+          await reduxStore.dispatch(
+            deleteLink(reduxStore.getState().tree.treeID, linkList, link)
+          );
+          initLink();
+          changeTreeInfo();
         } else {
           return;
         }
       })
-      .on("touch", async (d) => {
+      .on("touch", async (link) => {
         const deleteOK = window.confirm(`Delete Connection?`);
         if (deleteOK) {
-          //await dispatch(deleteLink(nodeList, linkList, techtreeID, link));
-          //await updateLink();
-          //await changeTreeThumbnail();
-          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+          await reduxStore.dispatch(
+            deleteLink(reduxStore.getState().tree.treeID, linkList, link)
+          );
+          initLink();
+          changeTreeInfo();
         } else {
           return;
         }
@@ -342,7 +355,6 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       })
       .style("stroke-width", selectedNodeStrokeWidth)
       .on("click", (node) => {
-        // 만약 클릭한 노드가 이미 클릭한 노드였다면 close 하는 로직 추가해도 괜찮겠네.
         if (
           reduxStore.getState().tree.selectedNodeList.find((ele) => {
             return ele.id === node.id;
@@ -352,11 +364,18 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
         } else {
           reduxStore.dispatch(selectNode(node));
           const d = document.createElement("div");
-          d.id = node.id;
+          d.id = `${node.id}`;
           document.getElementById("root").appendChild(d);
+
+          const modalList = document.getElementsByClassName("nodeModal");
+          const zIndexList = Array.from(modalList).map((ele) => {
+            return ele.style.zIndex;
+          });
+          const max = Math.max(...zIndexList);
+
           ReactDOM.render(
-            <SelectedNodeModal node={node} />,
-            document.getElementById(node.id)
+            <SelectedNodeModal defaultZ={max + 1} node={node} />,
+            document.getElementById(d.id)
           );
         }
       })
@@ -400,10 +419,7 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
               await reduxStore.dispatch(
                 createNode(reduxStore.getState().tree.treeID, nodeList)
               );
-              //await updateNode();
-              //await updateLink();
-              //await changeTreeThumbnail();
-              //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+              changeTreeInfo();
             })
         )
         .attr("cx", (d) => {
@@ -509,10 +525,7 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
                       createLink(reduxStore.getState().tree.treeID, linkList)
                     );
                     await initLink();
-                    //await changeTreeThumbnail();
-                    //await dispatch(
-                    //  updateThumbnail(techtreeID, tempThumbnailURL)
-                    //);
+                    changeTreeInfo();
                     svg.select(".tempLine").style("opacity", "0");
                   }
                   svg
@@ -564,11 +577,11 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       .on("click", async (d) => {
         const deleteOK = window.confirm(`Delete ${d.name} Node?`);
         if (deleteOK) {
-          //await dispatch(deleteNode(nodeList, linkList, techtreeID, d));
-          //await updateNode();
-          //await updateLink();
-          //await changeTreeThumbnail();
-          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+          reduxStore.dispatch(
+            deleteNode(reduxStore.getState().tree.treeID, nodeList, linkList, d)
+          );
+          initNode();
+          changeTreeInfo();
         } else {
           return;
         }
@@ -576,11 +589,11 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       .on("touch", async (d) => {
         const deleteOK = window.confirm(`Delete ${d.name} Node?`);
         if (deleteOK) {
-          //await dispatch(deleteNode(nodeList, linkList, techtreeID, d));
-          //await updateNode();
-          //await updateLink();
-          //await changeTreeThumbnail();
-          //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL));
+          reduxStore.dispatch(
+            deleteNode(reduxStore.getState().tree.treeID, nodeList, d)
+          );
+          initNode();
+          changeTreeInfo();
         } else {
           return;
         }
@@ -632,9 +645,8 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       await reduxStore.dispatch(
         createNode(reduxStore.getState().tree.treeID, nodeList)
       );
+      changeTreeInfo();
       initNode();
-      //await changeTreeThumbnail()
-      //await dispatch(updateThumbnail(techtreeID, tempThumbnailURL))
     }
   });
 
