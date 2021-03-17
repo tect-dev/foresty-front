@@ -298,7 +298,7 @@ const MarkdownButton = styled.button`
   cursor: pointer;
   border: none;
   justify-content: space-around;
-  font-family: Arial, sans-serif;
+  //font-family: Arial, sans-serif;
 `;
 
 const StyledTextarea = styled.textarea`
@@ -306,6 +306,7 @@ const StyledTextarea = styled.textarea`
   box-sizing: border-box;
   font-size: ${fontSize.medium};
   width: 100%;
+  font-family: inherit;
   //resize: none;
   //padding: 10px;
   background-color: transparent;

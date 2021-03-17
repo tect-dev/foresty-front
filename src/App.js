@@ -28,16 +28,14 @@ function App() {
     return { myID: state.user.myID };
   });
   return (
-    <Router history={customHistory}>
-      <GlobalWrapper>
-        <Switch>
-          <Route path="/" exact={true} component={HomePage} />
-          <Route path="/login" exact={true} component={LoginPage} />
-          <Route path="/forest/:userID" component={ForestPage} />
-          <Route path="/tree/:treeID" component={TreePage} />
-        </Switch>
-      </GlobalWrapper>
-    </Router>
+    <GlobalWrapper>
+      <Switch>
+        <Route path="/" exact={true} component={HomePage} />
+        <Route path="/login" exact={true} component={LoginPage} />
+        <Route path="/forest/:userID" component={ForestPage} />
+        <Route path="/tree/:treeID" component={TreePage} />
+      </Switch>
+    </GlobalWrapper>
   );
 }
 

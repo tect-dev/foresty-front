@@ -1,6 +1,6 @@
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { MarkdownEditor } from "../MarkdownEditor";
-import { DefaultButton, XIcon, EditIcon, DoneIcon } from "../Buttons";
+import { EditButton, XIcon, EditIcon, DoneIcon } from "../Buttons";
 import { LargeTextInput } from "../Inputs";
 import { LargeText } from "../Texts";
 
@@ -81,7 +81,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
         </div>
         <div>
           {isEditing ? (
-            <DefaultButton
+            <EditButton
               onClick={() => {
                 if (isEditing) {
                   finishDocuEdit();
@@ -90,9 +90,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
               }}
             >
               <DoneIcon />
-            </DefaultButton>
+            </EditButton>
           ) : (
-            <DefaultButton
+            <EditButton
               onClick={() => {
                 if (isEditing) {
                   finishDocuEdit();
@@ -101,15 +101,15 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
               }}
             >
               <EditIcon />
-            </DefaultButton>
+            </EditButton>
           )}
-          <DefaultButton
+          <EditButton
             onClick={() => {
               reduxStore.dispatch(closeNode(node));
             }}
           >
             <XIcon />
-          </DefaultButton>
+          </EditButton>
         </div>
       </DocuHeader>
       {isEditing ? (
@@ -181,17 +181,21 @@ const ModalWrapper = styled.div`
 `;
 
 const DocuHeader = styled.div`
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
 `;
 
 const DocuBodyArea = styled.div`
-  padding: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
 `;
 
 export const NodeColorButtonArea = styled.div`
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 1rem;
+  //padding-right: 15px;
   padding-bottom: 10px;
 `;
 

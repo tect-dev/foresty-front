@@ -1,14 +1,19 @@
 import { TreeCard } from "../components/tree/TreeCard";
 import { GridWrapper } from "../wrapper/GridWrapper";
+import { DefaultButton } from "../components/Buttons";
 
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { readTreeList, createTree } from "../redux/forest";
 import styled from "styled-components";
+import { authService } from "../lib/firebase";
+import { useHistory } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export const ForestPage = ({ match }) => {
   const { userID } = match.params;
   const dispatch = useDispatch();
+  const history = useHistory();
   const { treeList } = useSelector((state) => {
     return { treeList: state.forest.treeList };
   });
@@ -17,33 +22,42 @@ export const ForestPage = ({ match }) => {
   });
 
   React.useEffect(() => {
-    dispatch(readTreeList(userID));
+    authService.onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(readTreeList(userID));
+      } else {
+        Swal.fire("Login Required!");
+        history.push("/login");
+      }
+    });
   }, []);
   return (
-    <div className="Home">
+    <div style={{ paddingTop: "2rem", paddingBottom: "2rem" }}>
       <ForestHeader>
-        <div>Forest</div>
-        <button
+        <div></div>
+        <DefaultButton
           onClick={() => {
             dispatch(createTree(myID, myNickname));
           }}
         >
-          새나무 심기
-        </button>
+          Plant New Tree
+        </DefaultButton>
       </ForestHeader>
-      <GridWrapper>
+      <ForestGrid>
         {treeList.map((ele, idx) => {
+          //console.log(ele.createdAt);
+          const date = new Date(ele.createdAt.seconds * 1000);
           return (
             <TreeCard
               key={idx}
               treeID={ele.treeID}
               treeTitle={ele.title}
               thumbnail={ele.thumbnail}
-              //createdAt={ele.createdAt}
+              createdAt={JSON.stringify(date).substr(1, 10)}
             ></TreeCard>
           );
         })}
-      </GridWrapper>
+      </ForestGrid>
     </div>
   );
 };
@@ -55,20 +69,6 @@ const ForestHeader = styled.div`
   margin-right: 10vw;
 `;
 const ForestGrid = styled(GridWrapper)`
-  margin-left: 10vw;
-  margin-right: 10vw;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 3rem;
-  grid-auto-columns: minmax(125px, auto);
-  grid-auto-rows: minmax(125px, auto);
-  justify-content: "center";
-  @media (max-width: 1440) {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-  @media (max-width: 768) {
-    grid-template-columns: 1fr 1fr;
-  }
-  @media (max-width: 650) {
-    grid-template-columns: 1fr;
-  }
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 `;

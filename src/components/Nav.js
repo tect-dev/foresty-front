@@ -4,6 +4,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useSelector } from "react-redux";
+import { colorPalette, fontSize, fontWeight } from "../lib/style";
 
 export const Nav = React.memo(() => {
   const { myID } = useSelector((state) => {
@@ -28,15 +29,35 @@ export const Nav = React.memo(() => {
               <img src={MainLogo} style={{ height: "60px" }} />
             </Link>
           </div>
-          <div>
+          <MyForest
+            style={{
+              marginLeft: "2rem",
+            }}
+          >
             {myID !== null ? <Link to={`/forest/${myID}`}>My Forest</Link> : ""}
-          </div>
+          </MyForest>
         </div>
         <div>
           {myID !== null ? (
-            <Link to={`/forest/${myID}`}>Account!</Link>
+            <Dropdown class="dropdown" style={{ display: "inline-block" }}>
+              <MyForest>Account</MyForest>
+              <div
+                class="dropdown-content"
+                style={{
+                  display: "none",
+                  position: "absolute",
+                  minWidth: "160px",
+                  boxShadow: "0px 8px 16px 0px rgba(0,0,0,0.2)",
+                  zIndex: "1",
+                }}
+              >
+                <a href="#">Log Out</a>
+              </div>
+            </Dropdown>
           ) : (
-            <Link to={`/login`}>Account</Link>
+            <MyForest>
+              <Link to={`/login`}>Account</Link>
+            </MyForest>
           )}
         </div>
       </NavContainer>
@@ -49,5 +70,22 @@ const NavContainer = styled.div`
   @media (max-width: 768px) {
     padding-left: 5vw;
     padding-right: 5vw;
+  }
+`;
+
+const MyForest = styled.div`
+  font-size: ${fontSize.medium};
+  font-weight: ${fontWeight.bold};
+  cursor: pointer;
+  &:hover {
+    color: ${colorPalette.green7};
+  }
+`;
+export const Dropdown = styled.div`
+  cursor: pointer;
+  div:hover {
+    .dropdown-content {
+      display: block;
+    }
   }
 `;

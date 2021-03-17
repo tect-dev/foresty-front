@@ -63,6 +63,7 @@ export const TreeInfoArea = styled.div`
 export const TreeThumbnailHeader = styled.div`
   padding-top: 1rem;
   padding-bottom: 1rem;
+  text-align: center;
 `;
 
 export const TreeThumbnailFooter = styled.div`

@@ -16,14 +16,19 @@ const READ_TREE_LIST_FAIL = "forest/READ_TREE_LIST_FAIL";
 export const readTreeList = (userID) => async (dispatch) => {
   dispatch({ type: READ_TREE_LIST_TRY });
   try {
-    const userRef = await db.collection("users").doc(userID);
-    const snapshot = await userRef.collection("trees").get();
-    const treeList = [];
-    snapshot.forEach((doc) => {
-      console.log(doc.id, "=>", doc.data());
-      treeList.push(doc.data());
-    });
-    dispatch({ type: READ_TREE_LIST_SUCCESS, treeList });
+    const user = authService.currentUser;
+    if (user) {
+      const userRef = await db.collection("users").doc(userID);
+      const snapshot = await userRef
+        .collection("trees")
+        .orderBy("createdAt", "desc")
+        .get();
+      const treeList = [];
+      snapshot.forEach((doc) => {
+        treeList.push(doc.data());
+      });
+      dispatch({ type: READ_TREE_LIST_SUCCESS, treeList });
+    }
     //const res = await axios.get(
     //  `${process.env.REACT_APP_BACKEND_URL}/user/${userID}`,
     //  { withCredentials: true }
@@ -36,7 +41,11 @@ export const readTreeList = (userID) => async (dispatch) => {
 const CREATE_TREE_TRY = "tree/CREATE_TREE_TRY";
 const CREATE_TREE_SUCCESS = "tree/CREATE_TREE_SUCCESS";
 const CREATE_TREE_FAIL = "tree/CREATE_TREE_FAIL";
-export const createTree = (myID, myNickname) => async (dispatch) => {
+export const createTree = (myID, myNickname) => async (
+  dispatch,
+  getState,
+  { history }
+) => {
   dispatch({ type: CREATE_TREE_TRY });
   const uid24 = uid(24);
   try {
@@ -46,7 +55,7 @@ export const createTree = (myID, myNickname) => async (dispatch) => {
       .collection("trees")
       .doc(uid24)
       .set({
-        title: "",
+        title: "New Sprout",
         nodeList: "[]",
         linkList: "[]",
         treeAuthorID: myID,
@@ -57,6 +66,7 @@ export const createTree = (myID, myNickname) => async (dispatch) => {
       })
       .then(() => {
         dispatch({ type: CREATE_TREE_SUCCESS });
+        history.push(`/tree/${uid24}`);
       });
   } catch (e) {
     dispatch({ type: CREATE_TREE_FAIL, error: e });

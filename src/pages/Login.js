@@ -11,11 +11,21 @@ import { boxShadow, colorPalette } from "../lib/style";
 import styled from "styled-components";
 import { useHistory } from "react-router";
 import { authService } from "../lib/firebase";
+import Swal from "sweetalert2";
 
 export const LoginPage = React.memo(() => {
+  const history = useHistory();
   // 6~20자리. 최소 하나이상의 숫자 또는 특수문자를 포함해야함.
   const passwordRegex = /^(?=.*[a-zA-Z])((?=.*\d)|(?=.*\W)).{6,20}$/;
-
+  React.useEffect(() => {
+    authService.onAuthStateChanged((user) => {
+      if (user) {
+        Swal.fire("Already Logged In!");
+        history.push("/");
+      } else {
+      }
+    });
+  }, []);
   return (
     <>
       <input />

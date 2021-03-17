@@ -4,6 +4,7 @@ import {
   EditIcon,
   TrashIcon,
   DefaultButton,
+  EditButton,
 } from "../components/Buttons";
 import { LargeText } from "../components/Texts";
 import { LargeTextInput } from "../components/Inputs";
@@ -33,14 +34,16 @@ import {
   deleteNode,
   createLink,
   deleteLink,
-  //finishEditTree,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
+import { authService } from "../lib/firebase";
+import { useHistory } from "react-router-dom";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
   const headerRef = React.useRef(null);
+  const history = useHistory();
   const dispatch = useDispatch();
   const { treeID } = match.params;
   const { myID } = useSelector((state) => {
@@ -62,7 +65,14 @@ export const TreePage = React.memo(({ match }) => {
     }
   }, []);
   React.useEffect(() => {
-    dispatch(readTree(myID, treeID));
+    authService.onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(readTree(myID, treeID));
+      } else {
+        Swal.fire("Login Required!");
+        history.push("/login");
+      }
+    });
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (headerRef && containerRef.current) {
@@ -87,13 +97,13 @@ export const TreePage = React.memo(({ match }) => {
         )}
 
         <div>
-          <DefaultButton id="treeEditButton">
+          <EditButton id="treeEditButton">
             {isEditingTree ? <DoneIcon /> : <EditIcon />}
-          </DefaultButton>
+          </EditButton>
 
-          <DefaultButton id="treeDelete">
+          <EditButton id="treeDelete">
             <TrashIcon />
-          </DefaultButton>
+          </EditButton>
         </div>
       </TreeHeader>
       <TreeMap ref={containerRef} />

@@ -6,9 +6,8 @@ export const GridWrapper = styled.div`
   margin-right: 10vw;
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 3rem;
-  grid-auto-columns: minmax(125px, auto);
-  grid-auto-rows: minmax(125px, auto);
-  justify-content: "center";
+
+  justify-content: center;
   @media (max-width: 1440) {
     grid-template-columns: 1fr 1fr 1fr;
   }
