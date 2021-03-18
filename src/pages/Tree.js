@@ -55,8 +55,11 @@ export const TreePage = React.memo(({ match }) => {
   const { treeTitle } = useSelector((state) => {
     return { treeTitle: state.tree.treeTitle };
   });
-  const { isEditingTree } = useSelector((state) => {
-    return { isEditingTree: state.tree.isEditingTree };
+  const { isEditingTree, loading } = useSelector((state) => {
+    return {
+      isEditingTree: state.tree.isEditingTree,
+      loading: state.tree.loading,
+    };
   });
 
   React.useEffect(() => {
@@ -96,7 +99,7 @@ export const TreePage = React.memo(({ match }) => {
           <LargeText>{treeTitle}</LargeText>
         )}
 
-        <div>
+        <div style={{ display: "flex" }}>
           <EditButton id="treeEditButton">
             {isEditingTree ? <DoneIcon /> : <EditIcon />}
           </EditButton>
@@ -114,7 +117,7 @@ export const TreePage = React.memo(({ match }) => {
 const TreeHeader = styled.div`
   border-radius: 3px;
   //border: 1px solid ${colorPalette.gray3};
-  background-color: ${colorPalette.gray0};
+  //background-color: ${colorPalette.gray0};
   display: flex;
   //flex-wrap: wrap;
   justify-content: space-between;
