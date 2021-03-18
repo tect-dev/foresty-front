@@ -3,13 +3,15 @@ import MainLogo from "../assets/MainLogo.png";
 import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { colorPalette, fontSize, fontWeight } from "../lib/style";
+import { logout } from "../redux/user";
 
 export const Nav = React.memo(() => {
-  const { myID } = useSelector((state) => {
-    return { myID: state.user.myID };
+  const { myID, loginState } = useSelector((state) => {
+    return { myID: state.user.myID, loginState: state.user.loginState };
   });
+  const dispatch = useDispatch();
   return (
     <header>
       <NavContainer
@@ -38,20 +40,16 @@ export const Nav = React.memo(() => {
           </MyForest>
         </div>
         <div>
-          {myID !== null ? (
+          {loginState ? (
             <Dropdown class="dropdown" style={{ display: "inline-block" }}>
               <MyForest>Account</MyForest>
               <div
-                class="dropdown-content"
-                style={{
-                  display: "none",
-                  position: "absolute",
-                  minWidth: "160px",
-                  boxShadow: "0px 8px 16px 0px rgba(0,0,0,0.2)",
-                  zIndex: "1",
+                onClick={() => {
+                  dispatch(logout());
                 }}
+                class="dropdown-content"
               >
-                <a href="#">Log Out</a>
+                Log Out
               </div>
             </Dropdown>
           ) : (
@@ -83,9 +81,20 @@ const MyForest = styled.div`
 `;
 export const Dropdown = styled.div`
   cursor: pointer;
-  div:hover {
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    //min-width: 160px;
+    //box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+  }
+  &:hover {
     .dropdown-content {
       display: block;
+      padding-top: 10px;
+      &:hover {
+        color: ${colorPalette.green5};
+      }
     }
   }
 `;

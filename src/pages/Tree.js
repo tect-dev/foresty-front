@@ -341,7 +341,16 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
       .selectAll("circle")
       .data(nodeList)
       .join("circle")
-      .attr("r", (d) => nodeRadius)
+      .attr("r", (node) => {
+        const relatedNumber = linkList.filter((ele) => {
+          if (ele.startNodeID === node.id || ele.endNodeID === node.id) {
+            return true;
+          } else {
+            return false;
+          }
+        }).length;
+        return node.radius * (1 + relatedNumber / 10);
+      })
       .style("fill", (d) => d.fillColor)
       .attr("cx", (d) => {
         return d.x;

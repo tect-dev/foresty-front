@@ -20,32 +20,39 @@ export const LoginPage = React.memo(() => {
   React.useEffect(() => {
     authService.onAuthStateChanged((user) => {
       if (user) {
-        Swal.fire("Already Logged In!");
+        Swal.fire("Logged In!");
         history.push("/");
       } else {
       }
     });
   }, []);
+
+  const [email, setEmail] = React.useState();
+  const [password, setPassword] = React.useState();
   return (
     <>
-      <input />
-      <input />
+      <input
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+        }}
+      />
+      <input
+        value={password}
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
       <button
         onClick={() => {
-          authService.signInWithEmailAndPassword(
-            "budlebeee@gmail.com",
-            "jo761322"
-          );
+          authService.signInWithEmailAndPassword(email, password);
         }}
       >
         login
       </button>
       <button
         onClick={() => {
-          authService.createUserWithEmailAndPassword(
-            "budlebeee@gmail.com",
-            "jo761322"
-          );
+          authService.createUserWithEmailAndPassword(email, password);
         }}
       >
         sign up
