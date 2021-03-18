@@ -32,7 +32,7 @@ export const Nav = React.memo(() => {
           paddingTop: "10px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: " 2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <div>
             <Link to="/">
               <img src={MainLogo} style={{ height: "60px" }} />
@@ -50,7 +50,7 @@ export const Nav = React.memo(() => {
               }}
             >
               <Loader
-                type="Puff"
+                type="ThreeDots"
                 color={colorPalette.gray4}
                 height={20}
                 width={20}

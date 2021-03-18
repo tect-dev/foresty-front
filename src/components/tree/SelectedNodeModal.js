@@ -17,6 +17,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  let onDrag = false;
   let relativeX;
   let relativeY;
 
@@ -26,17 +27,24 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   }
   function handleDrag(e) {
     //e.preventDefault();
+    console.log("left: ", e.target.style.left);
+    console.log("top: ", e.target.style.top);
+    //e.target.style.left = e.pageX + "px";
     // e.target.style.position = "absolute";
     // e.target.style.left = e.clientX - relativeX + "px";
     // e.target.style.top = e.clientY - relativeY + "px";
   }
 
   function handleDragEnd(e) {
-    e.preventDefault();
-    e.target.style.position = "absolute";
+    //e.preventDefault();
+    console.log("drag end. e.target: ", e.target);
+    //e.target.style.position = "absolute";
     const scrolledTopLength = window.pageYOffset;
-    e.target.style.left = e.clientX - relativeX + "px";
-    e.target.style.top = scrolledTopLength + e.clientY - relativeY + "px";
+    e.target.style.left = e.pageX + "px";
+    //e.target.style.left = e.clientX - relativeX + "px";
+    //e.target.style.top = scrolledTopLength + e.clientY - relativeY + "px";
+    console.log("drag end. left: ", e.target.style.left);
+    console.log("drag end. top: ", e.target.style.top);
   }
 
   function finishDocuEdit() {
@@ -52,22 +60,51 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
     );
   }
 
+  function startDrag(e) {
+    console.log(e.target.tagName);
+    if (!isEditing && e.target.tagName === "DIV") {
+      onDrag = true;
+      relativeX = e.clientX - e.target.getBoundingClientRect().x;
+      relativeY = e.clientY - e.target.getBoundingClientRect().y;
+    }
+  }
+
+  function isDragging(e) {
+    if (onDrag) {
+      //console.log("드래그중임!");
+      const modal = document.getElementById(`modal${node.id}`);
+
+      // console.log("modal.style.left: ", modal.getBoundingClientRect().x);
+      const scrolledLeftLength = window.pageXOffset;
+      const scrolledTopLength = window.pageYOffset;
+      modal.style.left = e.clientX - relativeX + scrolledLeftLength + "px";
+      modal.style.top = e.clientY - relativeY + scrolledTopLength + "px";
+      //modal.style.left=e.clientY
+    }
+  }
+
+  function endDrag(e) {
+    onDrag = false;
+    relativeX = 0;
+    relativeY = 0;
+  }
+
   return (
     <ModalWrapper
-      draggable="true"
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
-      onClick={(e) => {
+      //draggable="true"
+      //onDragStart={handleDragStart}
+      //onDrag={handleDrag}
+      //onDragEnd={handleDragEnd}
+      onMouseDown={(e) => {
         changeZIndex(e, node);
       }}
-      className="nodeModal"
+      onMouseMove={isDragging}
       id={`modal${node.id}`}
       style={{ zIndex: defaultZ }}
     >
-      <DocuHeader>
-        <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
-          {isEditing ? (
+      {isEditing ? (
+        <DocuHeaderEdited onMouseMove={() => {}}>
+          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
             <LargeTextInput
               value={title}
               onChange={(e) => {
@@ -75,12 +112,8 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
               }}
               placeholder="title..."
             />
-          ) : (
-            <LargeText>{title}</LargeText>
-          )}
-        </div>
-        <div>
-          {isEditing ? (
+          </div>
+          <div>
             <EditButton
               onClick={() => {
                 if (isEditing) {
@@ -91,7 +124,22 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
             >
               <DoneIcon />
             </EditButton>
-          ) : (
+            <EditButton
+              onClick={() => {
+                reduxStore.dispatch(closeNode(node));
+              }}
+            >
+              <XIcon />
+            </EditButton>
+          </div>
+        </DocuHeaderEdited>
+      ) : null}
+      {!isEditing ? (
+        <DocuHeader onMouseDown={startDrag} onMouseUp={endDrag}>
+          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
+            <LargeText>{title}</LargeText>
+          </div>
+          <div>
             <EditButton
               onClick={() => {
                 if (isEditing) {
@@ -102,16 +150,17 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
             >
               <EditIcon />
             </EditButton>
-          )}
-          <EditButton
-            onClick={() => {
-              reduxStore.dispatch(closeNode(node));
-            }}
-          >
-            <XIcon />
-          </EditButton>
-        </div>
-      </DocuHeader>
+            <EditButton
+              onClick={() => {
+                reduxStore.dispatch(closeNode(node));
+              }}
+            >
+              <XIcon />
+            </EditButton>
+          </div>
+        </DocuHeader>
+      ) : null}
+
       {isEditing ? (
         <NodeColorButtonArea>
           <NodeColorButton
@@ -181,7 +230,22 @@ const ModalWrapper = styled.div`
 `;
 
 const DocuHeader = styled.div`
-  padding: 1rem;
+  background-color: ${colorPalette.green0};
+
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  cursor: grab;
+`;
+
+const DocuHeaderEdited = styled.div`
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 5px;
+  padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
 `;
@@ -196,7 +260,8 @@ const DocuBodyArea = styled.div`
 export const NodeColorButtonArea = styled.div`
   padding-left: 1rem;
   //padding-right: 15px;
-  padding-bottom: 10px;
+  padding-top: 1rem;
+  //padding-bottom: 10px;
 `;
 
 export const NodeColorButton = styled.button`
