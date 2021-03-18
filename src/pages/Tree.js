@@ -103,10 +103,6 @@ export const TreePage = React.memo(({ match }) => {
           <EditButton id="treeEditButton">
             {isEditingTree ? <DoneIcon /> : <EditIcon />}
           </EditButton>
-
-          <EditButton id="treeDelete">
-            <TrashIcon />
-          </EditButton>
         </div>
       </TreeHeader>
       <TreeMap ref={containerRef} />

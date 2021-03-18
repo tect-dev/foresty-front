@@ -402,8 +402,10 @@ export default function tree(state = initialState, action) {
         return ele.id !== action.node.id;
       });
       const thisIs = document.getElementById(action.node.id);
-      thisIs.remove();
-      return { ...state, selectedNodeList: removed };
+      if (thisIs) {
+        thisIs?.remove();
+        return { ...state, selectedNodeList: removed };
+      }
     case CHANGE_TREE_TITLE:
       return {
         ...state,

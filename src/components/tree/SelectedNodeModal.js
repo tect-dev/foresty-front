@@ -9,7 +9,7 @@ import styled from "styled-components";
 import { reduxStore } from "../../index";
 import { closeNode, updateDocu, changeNodeColor } from "../../redux/tree";
 import { colorPalette } from "../../lib/style";
-import { changeZIndex } from "../../lib/functions";
+//import { changeZIndex } from "../../lib/functions";
 
 export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [title, setTitle] = React.useState(node.name);
@@ -17,35 +17,10 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  const modalID = `domInModal${node.id}`;
   let onDrag = false;
   let relativeX;
   let relativeY;
-
-  function handleDragStart(e) {
-    relativeX = e.clientX - e.target.getBoundingClientRect().x;
-    relativeY = e.clientY - e.target.getBoundingClientRect().y;
-  }
-  function handleDrag(e) {
-    //e.preventDefault();
-    console.log("left: ", e.target.style.left);
-    console.log("top: ", e.target.style.top);
-    //e.target.style.left = e.pageX + "px";
-    // e.target.style.position = "absolute";
-    // e.target.style.left = e.clientX - relativeX + "px";
-    // e.target.style.top = e.clientY - relativeY + "px";
-  }
-
-  function handleDragEnd(e) {
-    //e.preventDefault();
-    console.log("drag end. e.target: ", e.target);
-    //e.target.style.position = "absolute";
-    const scrolledTopLength = window.pageYOffset;
-    e.target.style.left = e.pageX + "px";
-    //e.target.style.left = e.clientX - relativeX + "px";
-    //e.target.style.top = scrolledTopLength + e.clientY - relativeY + "px";
-    console.log("drag end. left: ", e.target.style.left);
-    console.log("drag end. top: ", e.target.style.top);
-  }
 
   function finishDocuEdit() {
     reduxStore.dispatch(
@@ -61,7 +36,8 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   }
 
   function startDrag(e) {
-    console.log(e.target.tagName);
+    //modal.style.width = e.target.offsetWidth * 2 + "px";
+    const modal = document.getElementById(modalID);
     if (!isEditing && e.target.tagName === "DIV") {
       onDrag = true;
       relativeX = e.clientX - e.target.getBoundingClientRect().x;
@@ -71,15 +47,11 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
 
   function isDragging(e) {
     if (onDrag) {
-      //console.log("드래그중임!");
-      const modal = document.getElementById(`modal${node.id}`);
-
-      // console.log("modal.style.left: ", modal.getBoundingClientRect().x);
+      const modal = document.getElementById(modalID);
       const scrolledLeftLength = window.pageXOffset;
       const scrolledTopLength = window.pageYOffset;
       modal.style.left = e.clientX - relativeX + scrolledLeftLength + "px";
       modal.style.top = e.clientY - relativeY + scrolledTopLength + "px";
-      //modal.style.left=e.clientY
     }
   }
 
@@ -89,17 +61,31 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
     relativeY = 0;
   }
 
+  function changeZIndex(e, node) {
+    console.log("zindex:");
+    if (e.target) {
+      const modalList = document.getElementsByClassName("nodeModal");
+      const zIndexList = Array.from(modalList).map((ele) => {
+        return ele.style.zIndex;
+      });
+      const max = Math.max(...zIndexList);
+      const modalDOM = document.getElementById(modalID);
+      console.log("zlist: ", modalList);
+      if (modalDOM) {
+        modalDOM.style.zIndex = max + 2;
+        console.log("modalDOM.style.zIndex: ", modalDOM.style.zIndex);
+      }
+    }
+  }
+
   return (
     <ModalWrapper
-      //draggable="true"
-      //onDragStart={handleDragStart}
-      //onDrag={handleDrag}
-      //onDragEnd={handleDragEnd}
       onMouseDown={(e) => {
         changeZIndex(e, node);
       }}
       onMouseMove={isDragging}
-      id={`modal${node.id}`}
+      id={modalID}
+      className="nodeModal"
       style={{ zIndex: defaultZ }}
     >
       {isEditing ? (
@@ -217,12 +203,16 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   );
 });
 
+const ResizeArea = styled.div`
+  background-color: #999999;
+  padding: 23px;
+`;
+
 const ModalWrapper = styled.div`
   position: absolute;
   //  z-index: 100;
   background-color: #ffffff;
   border: 1px solid ${colorPalette.gray3};
-
   width: 50vw;
   @media (max-width: 768px) {
     width: 90vw;
