@@ -1,4 +1,4 @@
-import { HomePage } from "./pages/Home.tsx";
+import { HomePage } from "./pages/Home.js";
 import { TreePage } from "./pages/Tree";
 import { ForestPage } from "./pages/Forest";
 import { LoginPage } from "./pages/Login";

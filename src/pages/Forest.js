@@ -1,6 +1,6 @@
 import { TreeCard } from "../components/tree/TreeCard";
 import { GridWrapper } from "../wrapper/GridWrapper";
-import { DefaultButton } from "../components/Buttons";
+import { EditButton, XIcon, DefaultButton } from "../components/Buttons";
 
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,6 +9,8 @@ import styled from "styled-components";
 import { authService } from "../lib/firebase";
 import { useHistory } from "react-router-dom";
 import Swal from "sweetalert2";
+import { colorPalette } from "../lib/style";
+import { deleteTree } from "../redux/forest";
 
 export const ForestPage = ({ match }) => {
   const { userID } = match.params;
@@ -20,6 +22,8 @@ export const ForestPage = ({ match }) => {
   const { myID, myNickname } = useSelector((state) => {
     return { myID: state.user.myID, myNickname: state.user.myNickname };
   });
+
+  const [isEdit, setIsEdit] = React.useState();
 
   React.useEffect(() => {
     authService.onAuthStateChanged((user) => {
@@ -35,26 +39,60 @@ export const ForestPage = ({ match }) => {
     <div style={{ paddingTop: "2rem", paddingBottom: "2rem" }}>
       <ForestHeader>
         <div></div>
-        <DefaultButton
-          onClick={() => {
-            dispatch(createTree(myID, myNickname));
-          }}
-        >
-          Plant New Tree
-        </DefaultButton>
+        <div>
+          <DefaultButton
+            onClick={() => {
+              dispatch(createTree(myID, myNickname));
+            }}
+          >
+            Plant New Tree
+          </DefaultButton>
+          <DefaultButton
+            onClick={() => {
+              setIsEdit(!isEdit);
+            }}
+            //style={{ background: colorPalette.red3 }}
+          >
+            {isEdit ? "Doen" : "Edit"}
+          </DefaultButton>
+        </div>
       </ForestHeader>
       <ForestGrid>
         {treeList.map((ele, idx) => {
           //console.log(ele.createdAt);
           const date = new Date(ele.createdAt.seconds * 1000);
           return (
-            <TreeCard
-              key={idx}
-              treeID={ele.treeID}
-              treeTitle={ele.title}
-              thumbnail={ele.thumbnail}
-              createdAt={JSON.stringify(date).substr(1, 10)}
-            ></TreeCard>
+            <div>
+              {isEdit ? (
+                <EditButton
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Do you want to delete the tree?",
+                      text: "You won't be able to revert this!",
+                      icon: "warning",
+                      confirmButtonColor: "#d33", // "#3085d6",
+                      //                    cancelButtonColor: "#d33",
+                      confirmButtonText: "Yes, delete it!",
+                      showCancelButton: true,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        dispatch(deleteTree(ele.treeID));
+                      }
+                    });
+                  }}
+                >
+                  <XIcon />
+                </EditButton>
+              ) : null}
+
+              <TreeCard
+                key={idx}
+                treeID={ele.treeID}
+                treeTitle={ele.title}
+                thumbnail={ele.thumbnail}
+                createdAt={JSON.stringify(date).substr(1, 10)}
+              />
+            </div>
           );
         })}
       </ForestGrid>

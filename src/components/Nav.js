@@ -2,7 +2,7 @@ import MainLogo from "../assets/MainLogo.png";
 import Loader from "react-loader-spinner";
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { colorPalette, fontSize, fontWeight } from "../lib/style";
@@ -19,6 +19,7 @@ export const Nav = React.memo(() => {
     return { forestLoading: state.forest.loading };
   });
   const dispatch = useDispatch();
+  const history = useHistory();
   return (
     <header>
       <NavContainer
@@ -66,6 +67,7 @@ export const Nav = React.memo(() => {
               <MyForest>Account</MyForest>
               <div
                 onClick={() => {
+                  history.push("/");
                   dispatch(logout());
                 }}
                 class="dropdown-content"

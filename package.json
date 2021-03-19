@@ -45,7 +45,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "testdeploy": "react-scripts build && aws s3 sync ./build s3://tect-front-dev && aws cloudfront create-invalidation --distribution-id E16ZTBATL570K4 --paths '/*'"
   },
   "eslintConfig": {
     "extends": [

@@ -94,6 +94,7 @@ export const TreePage = React.memo(({ match }) => {
             onChange={(e) => {
               dispatch(changeTreeTitle(e.target.value));
             }}
+            maxLength="100"
           />
         ) : (
           <LargeText>{treeTitle}</LargeText>
@@ -442,26 +443,26 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
         )
         .attr("cx", (d) => {
           return d.x;
-        })
-        .transition()
-        .duration(130)
-        .ease(d3.easeLinear)
-        .on("start", function repeat() {
-          d3.active(this)
-            .attr("cx", (d) => {
-              return d.x - 1;
-            })
-            .transition()
-            .duration(130)
-            .ease(d3.easeLinear)
-            .attr("cx", (d) => {
-              return d.x + 1;
-            })
-            .transition()
-            .duration(130)
-            .ease(d3.easeLinear)
-            .on("start", repeat);
         });
+      //.transition()
+      //.duration(130)
+      //.ease(d3.easeLinear)
+      //.on("start", function repeat() {
+      //d3.active(this)
+      //  .attr("cx", (d) => {
+      //    return d.x - 1;
+      //  })
+      //  .transition()
+      //  .duration(130)
+      //  .ease(d3.easeLinear)
+      //  .attr("cx", (d) => {
+      //    return d.x + 1;
+      //  })
+      //  .transition()
+      //  .duration(130)
+      //  .ease(d3.easeLinear)
+      //  .on("start", repeat);
+      //});
     } else {
       // connect nodes by link
       createdNodeGroup

@@ -73,8 +73,37 @@ export const createTree = (myID, myNickname) => async (
   }
 };
 
+const DELETE_TREE_TRY = "forest/DELETE_TREE_TRY";
+const DELETE_TREE_SUCCESS = "forest/DELETE_TREE_SUCCESS";
+const DELETE_TREE_FAIL = "forest/DELETE_TREE_FAIL";
+export const deleteTree = (treeID) => async (dispatch) => {
+  const user = authService.currentUser;
+
+  dispatch({ type: DELETE_TREE_TRY });
+  try {
+    const treeRef = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("trees")
+      .doc(treeID)
+      .delete();
+
+    dispatch({ type: DELETE_TREE_SUCCESS, treeID });
+  } catch (e) {
+    dispatch({ type: DELETE_TREE_FAIL, error: e });
+  }
+};
 export default function user(state = initialState, action) {
   switch (action.type) {
+    case DELETE_TREE_TRY:
+      return { ...state, loading: true };
+    case DELETE_TREE_SUCCESS:
+      const deletedTreeList = state.treeList.filter((ele) => {
+        return ele.treeID !== action.treeID;
+      });
+      return { ...state, loading: false, treeList: deletedTreeList };
+    case DELETE_TREE_FAIL:
+      return { ...state, loading: false, error: action.error };
     case READ_TREE_LIST_TRY:
       return { ...state, loading: true, error: null };
     case READ_TREE_LIST_SUCCESS:
