@@ -34,6 +34,7 @@ import {
   deleteNode,
   createLink,
   deleteLink,
+  cleanUp,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
@@ -66,6 +67,9 @@ export const TreePage = React.memo(({ match }) => {
     if (headerRef.current && containerRef.current) {
       initMap(headerRef.current, containerRef.current);
     }
+    return () => {
+      dispatch(cleanUp());
+    };
   }, []);
   React.useEffect(() => {
     authService.onAuthStateChanged((user) => {
@@ -111,7 +115,7 @@ export const TreePage = React.memo(({ match }) => {
   );
 });
 
-const TreeHeader = styled.div`
+export const TreeHeader = styled.div`
   border-radius: 3px;
   //border: 1px solid ${colorPalette.gray3};
   //background-color: ${colorPalette.gray0};
@@ -129,7 +133,7 @@ const TreeHeader = styled.div`
   }
 `;
 
-const TreeMap = styled.div`
+export const TreeMap = styled.div`
   border-radius: 3px;
   border: 1px solid ${colorPalette.gray3};
   background-color: #ffffff;
@@ -146,7 +150,7 @@ const linkWidth = "2.5px";
 const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
-function initMap(headerRef, container) {
+export function initMap(headerRef, container) {
   const svg = d3
     .select(container)
     .append("svg")
@@ -197,7 +201,12 @@ function initMap(headerRef, container) {
   svg.append("g").attr("class", "labels");
 }
 
-function initGraph(headerRef, container, originalNodeList, originalLinkList) {
+export function initGraph(
+  headerRef,
+  container,
+  originalNodeList,
+  originalLinkList
+) {
   const width = mapWidth;
   const height = mapHeight;
   let nodeList = originalNodeList;
@@ -384,6 +393,7 @@ function initGraph(headerRef, container, originalNodeList, originalLinkList) {
           reduxStore.dispatch(selectNode(node));
           const d = document.createElement("div");
           d.id = `${node.id}`;
+          d.className = "nodeModalDOM";
           document.getElementById("root").appendChild(d);
 
           const modalList = document.getElementsByClassName("nodeModal");

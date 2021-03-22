@@ -19,15 +19,19 @@ export const LoginPage = React.memo(() => {
   const passwordRegex = /^(?=.*[a-zA-Z])((?=.*\d)|(?=.*\W)).{6,20}$/;
 
   const [isSignUp, setIsSignUp] = React.useState(false);
-  const { loading, error } = useSelector((state) => {
-    return { loading: state.user.loading, error: state.user.error };
+  const { loading, error, myID } = useSelector((state) => {
+    return {
+      loading: state.user.loading,
+      error: state.user.error,
+      myID: state.user.myID,
+    };
   });
 
   React.useEffect(() => {
     authService.onAuthStateChanged((user) => {
       if (user) {
         Swal.fire("Logged In!");
-        history.push("/");
+        history.push(`/`);
       } else {
       }
     });

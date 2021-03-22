@@ -12,6 +12,7 @@ export const fontSize = {
   large: "20px",
   xlarge: "24px",
   xxlarge: "36px",
+  xxxlarge: "48px",
 };
 
 export const mediaQuery = (maxWidth) => `

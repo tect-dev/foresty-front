@@ -1,4 +1,5 @@
 import axios from "axios";
+import Swal from "sweetalert2";
 import { authService, db } from "../lib/firebase";
 
 const initialState = {
@@ -36,6 +37,13 @@ export const editTree = () => {
   return { type: EDIT_TREE };
 };
 export const finishEditTree = () => {
+  Swal.fire({
+    position: "bottom-end",
+    icon: "success",
+    title: "Your work has been saved",
+    showConfirmButton: false,
+    timer: 1000,
+  });
   return { type: FINISH_EDIT_TREE };
 };
 
@@ -301,6 +309,15 @@ export const closeNode = (node) => {
   return { type: CLOSE_NODE, node };
 };
 
+const CLEAN_UP = "tree/CLEAN_UP";
+export const cleanUp = () => {
+  const modalList = document.getElementsByClassName("nodeModalDOM");
+  while (modalList.length > 0) {
+    modalList[0].parentNode.removeChild(modalList[0]);
+  }
+  return { type: CLEAN_UP };
+};
+
 const CHANGE_NODE_COLOR = "tree/CHANGE_NODE_COLOR";
 export const changeNodeColor = (nodeID, color) => {
   return { type: CHANGE_NODE_COLOR, nodeID, color };
@@ -406,6 +423,19 @@ export default function tree(state = initialState, action) {
         thisIs?.remove();
         return { ...state, selectedNodeList: removed };
       }
+    case CLEAN_UP:
+      return {
+        ...state,
+        treeID: "",
+        treeTitle: "",
+        nodeList: [],
+        linkList: [],
+        treeAuthorID: "",
+        treeAuthorNickname: "",
+        selectedNodeList: [],
+        error: null,
+        isEditingTree: false,
+      };
     case CHANGE_TREE_TITLE:
       return {
         ...state,
