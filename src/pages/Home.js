@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 export const HomePage = () => {
   const containerRef = React.useRef(null);
   const headerRef = React.useRef(null);
+  const loginCheck = localStorage.getItem("user");
   const { loginState, myID } = useSelector((state) => {
     return { loginState: state.user.loginState, myID: state.user.myID };
   });
@@ -20,10 +21,11 @@ export const HomePage = () => {
       <BlockWrapper>
         <XXXLargeText>Cultivate Your Knowledge</XXXLargeText>
         <br />
+        <div>Only Click and Drag For Organize think</div>
         <br />
         <div>
           <DefaultButton>
-            {!loginState ? (
+            {!loginCheck ? (
               <Link to="/login">Get Started</Link>
             ) : (
               <Link to={`/forest/${myID}`}>Get Started</Link>
@@ -31,15 +33,16 @@ export const HomePage = () => {
           </DefaultButton>
         </div>
       </BlockWrapper>
+
       <BlockWrapper>
-        <ImageWrapper
-          src="https://foresty-tutorial.s3.ap-northeast-2.amazonaws.com/tutorial-gif.gif"
-          alt="tutorial"
-        />
+        <VideoWrapper
+          src="https://foresty-tutorial.s3.ap-northeast-2.amazonaws.com/tuto.mp4"
+          autoPlay={true}
+          playsInline={true}
+          muted={true}
+          loop={true}
+        ></VideoWrapper>
       </BlockWrapper>
-      <div>
-        <TreePage match={{ params: "918a8f01c7b603db2de0a051" }} />
-      </div>
     </MainWrapper>
   );
 };
@@ -50,7 +53,7 @@ const MainWrapper = styled.div`
   align-items: center;
   margin-left: auto;
   margin-right: auto;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
@@ -61,7 +64,7 @@ const BlockWrapper = styled.div`
   text-align: center;
 `;
 
-const ImageWrapper = styled.img`
+const VideoWrapper = styled.video`
   width: 100%;
   border: 1px solid ${colorPalette.gray2};
   border-radius: 5px;

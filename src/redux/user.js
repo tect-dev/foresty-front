@@ -13,12 +13,14 @@ const initialState = {
 
 const INIT_USER = "user/INIT_USER";
 export const authCheck = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
   return { type: INIT_USER, user };
 };
 
 const LOG_OUT = "user/LOG_OUT";
 export const logout = () => {
   authService.signOut();
+  localStorage.removeItem("user");
   return { type: LOG_OUT };
 };
 

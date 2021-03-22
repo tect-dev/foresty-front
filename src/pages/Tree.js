@@ -72,14 +72,16 @@ export const TreePage = React.memo(({ match }) => {
     };
   }, []);
   React.useEffect(() => {
-    authService.onAuthStateChanged((user) => {
-      if (user) {
-        dispatch(readTree(myID, treeID));
-      } else {
-        Swal.fire("Login Required!");
-        history.push("/login");
-      }
-    });
+    if (treeID) {
+      authService.onAuthStateChanged((user) => {
+        if (user) {
+          dispatch(readTree(myID, treeID));
+        } else {
+          Swal.fire("Login Required!");
+          history.push("/login");
+        }
+      });
+    }
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (headerRef && containerRef.current) {
@@ -87,7 +89,7 @@ export const TreePage = React.memo(({ match }) => {
     }
   }, [headerRef, containerRef, nodeList, linkList, isEditingTree]);
 
-  const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
+  //const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
 
   return (
     <>
