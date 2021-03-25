@@ -148,6 +148,11 @@ export const LoginPage = React.memo(() => {
 
           <div>
             <FormInput
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  dispatch(login(email, password));
+                }
+              }}
               value={email}
               type="email"
               onChange={(e) => {
@@ -160,6 +165,11 @@ export const LoginPage = React.memo(() => {
           </div>
           <div>
             <FormInput
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  dispatch(login(email, password));
+                }
+              }}
               value={password}
               type="password"
               onChange={(e) => {
@@ -179,6 +189,7 @@ export const LoginPage = React.memo(() => {
               >
                 LOG IN
               </FormButton>
+
               <ChangeState>
                 New to Foresty?
                 <div
@@ -219,6 +230,9 @@ export const Container = styled.div`
   border: 1px solid ${colorPalette.gray3};
   width: 350px;
   padding: 25px;
+  @media (max-width: 650px) {
+    width: 95vw;
+  }
 `;
 
 const FormButton = styled(DefaultButton)`

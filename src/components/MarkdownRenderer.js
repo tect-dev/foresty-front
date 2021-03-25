@@ -16,6 +16,9 @@ import { prismThemes } from "../lib/prismThemes.js";
 import { colorPalette, mediaSize } from "../lib/style";
 
 const MarkdownStyledBlock = styled.div`
+  font-family: "inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   &.monokai {
     ${prismThemes["monokai"]}
   }
@@ -49,8 +52,6 @@ const MarkdownStyledBlock = styled.div`
     }
   }
   pre {
-    font-family: "Noto Sans KR", "Fira Mono", source-code-pro, Menlo, Monaco,
-      Consolas, "Courier New", monospace;
     font-size: 0.875rem;
     padding: 1rem;
     margin: 1rem;
@@ -129,18 +130,18 @@ const MarkdownStyledBlock = styled.div`
     display: none;
   }
   .math {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    //margin-top: 1rem;
+    // margin-bottom: 1rem;
+
+    //justify-content: center;
+    //align-items: center;
   }
   .math-inline {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    //margin-top: 1rem;
+    //margin-bottom: 1rem;
+    //display: flex;
+    //justify-content: center;
+    //align-items: center;
   }
   blockquote {
     margin-top: 2rem;

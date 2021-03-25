@@ -22,7 +22,15 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   let relativeX;
   let relativeY;
 
-  function finishDocuEdit() {
+  const colorList = [
+    colorPalette.red7,
+    colorPalette.yellow5,
+    colorPalette.green5,
+    colorPalette.blue5,
+    colorPalette.violet5,
+  ];
+
+  const finishDocuEdit = React.useCallback(() => {
     reduxStore.dispatch(
       updateDocu(
         reduxStore.getState().tree.treeID,
@@ -33,7 +41,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
         nodeColor
       )
     );
-  }
+  }, [node, title, text, nodeColor]);
 
   function startDrag(e) {
     //modal.style.width = e.target.offsetWidth * 2 + "px";
@@ -62,7 +70,6 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   }
 
   function changeZIndex(e, node) {
-    console.log("zindex:");
     if (e.target) {
       const modalList = document.getElementsByClassName("nodeModal");
       const zIndexList = Array.from(modalList).map((ele) => {
@@ -70,10 +77,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       });
       const max = Math.max(...zIndexList);
       const modalDOM = document.getElementById(modalID);
-      console.log("zlist: ", modalList);
+
       if (modalDOM) {
         modalDOM.style.zIndex = max + 2;
-        console.log("modalDOM.style.zIndex: ", modalDOM.style.zIndex);
       }
     }
   }
@@ -86,7 +92,16 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       onMouseMove={isDragging}
       id={modalID}
       className="nodeModal"
-      style={{ zIndex: defaultZ }}
+      style={{
+        zIndex: defaultZ,
+        top:
+          window.pageYOffset +
+          document.getElementById("treeMap").getBoundingClientRect().y +
+          "px",
+        //30 +
+        //document.getElementById("treeMap").getBoundingClientRect().y +
+        //"px",
+      }}
     >
       {isEditing ? (
         <DocuHeaderEdited onMouseMove={() => {}}>
@@ -97,6 +112,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
                 setTitle(e.target.value);
               }}
               placeholder="title..."
+              maxLength={50}
             />
           </div>
           <div>
@@ -149,47 +165,17 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
 
       {isEditing ? (
         <NodeColorButtonArea>
-          <NodeColorButton
-            style={{ background: colorPalette.red7 }}
-            onClick={() => {
-              setNodeColor(colorPalette.red7);
-              reduxStore.dispatch(changeNodeColor(node.id, colorPalette.red7));
-            }}
-          ></NodeColorButton>
-          <NodeColorButton
-            style={{ background: colorPalette.yellow5 }}
-            onClick={() => {
-              setNodeColor(colorPalette.yellow5);
-              reduxStore.dispatch(
-                changeNodeColor(node.id, colorPalette.yellow5)
-              );
-            }}
-          ></NodeColorButton>
-          <NodeColorButton
-            style={{ background: colorPalette.green5 }}
-            onClick={() => {
-              setNodeColor(colorPalette.green5);
-              reduxStore.dispatch(
-                changeNodeColor(node.id, colorPalette.green5)
-              );
-            }}
-          ></NodeColorButton>
-          <NodeColorButton
-            style={{ background: colorPalette.blue5 }}
-            onClick={() => {
-              setNodeColor(colorPalette.blue5);
-              reduxStore.dispatch(changeNodeColor(node.id, colorPalette.blue5));
-            }}
-          ></NodeColorButton>
-          <NodeColorButton
-            style={{ background: colorPalette.violet5 }}
-            onClick={() => {
-              setNodeColor(colorPalette.violet5);
-              reduxStore.dispatch(
-                changeNodeColor(node.id, colorPalette.violet5)
-              );
-            }}
-          ></NodeColorButton>
+          {colorList.map((color) => {
+            return (
+              <NodeColorButton
+                style={{ background: color }}
+                onClick={() => {
+                  setNodeColor(color);
+                  reduxStore.dispatch(changeNodeColor(node.id, color));
+                }}
+              ></NodeColorButton>
+            );
+          })}
         </NodeColorButtonArea>
       ) : null}
 
@@ -209,11 +195,18 @@ const ResizeArea = styled.div`
 `;
 
 const ModalWrapper = styled.div`
+  //left: 50px; // + ${window.pageXOffset};;
+
   position: absolute;
-  //  z-index: 100;
+  //position: fixed;
+  //position: static;
+  //position: relative;
+  //z-index: 100;
   background-color: #ffffff;
   border: 1px solid ${colorPalette.gray3};
-  width: 50vw;
+  width: 700px;
+  height: 100vh;
+  overflow: scroll;
   @media (max-width: 768px) {
     width: 90vw;
   }

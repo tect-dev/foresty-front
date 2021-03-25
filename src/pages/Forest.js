@@ -59,7 +59,6 @@ export const ForestPage = ({ match }) => {
       </ForestHeader>
       <ForestGrid>
         {treeList.map((ele, idx) => {
-          //console.log(ele.createdAt);
           const date = new Date(ele.createdAt.seconds * 1000);
           return (
             <div>

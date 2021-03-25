@@ -35,7 +35,6 @@ export const signUp = (email, password) => async (dispatch) => {
   } catch (e) {
     dispatch({ type: SIGNUP_FAIL, error: e });
     Swal.fire(e.message);
-    //console.log(e)
   }
 };
 
@@ -50,7 +49,6 @@ export const login = (email, password) => async (dispatch) => {
   } catch (e) {
     dispatch({ type: LOG_IN_FAIL, error: e });
     Swal.fire(e.message);
-    //console.log(e);
   }
 };
 

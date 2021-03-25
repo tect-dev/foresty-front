@@ -57,11 +57,9 @@ export const MarkdownEditor = ({
         const result = `${value.substring(0, selectionStart)}![${
           file.name
         }](${imageUrl})${value.substring(selectionEnd)}`;
-        //const result = `${localText}![${file.name}](${imageUrl})`
-        // setLocalText(result)
+
         bindingSetter(result);
       } else {
-        //console.log('no image file')
       }
     },
     [bindingSetter]
@@ -302,6 +300,9 @@ const MarkdownButton = styled.button`
 `;
 
 const StyledTextarea = styled.textarea`
+  font-family: "inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   border: none;
   box-sizing: border-box;
   font-size: ${fontSize.medium};

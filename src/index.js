@@ -16,8 +16,8 @@ const customHistory = createBrowserHistory();
 export const reduxStore = createStore(
   rootReducer,
   applyMiddleware(
-    ReduxThunk.withExtraArgument({ history: customHistory }),
-    logger
+    ReduxThunk.withExtraArgument({ history: customHistory })
+    //, logger
   )
 );
 

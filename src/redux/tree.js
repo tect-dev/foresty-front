@@ -79,7 +79,6 @@ export const readTree = (userID, treeID) => async (dispatch) => {
     });
   } catch (error) {
     dispatch({ type: READ_TREE_FAIL, error });
-    console.log("error: ", error);
   }
 };
 
@@ -110,18 +109,19 @@ export const updateDocu = (
     //    nodeList: JSON.stringify(filteredList),
     //  },
     //});
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      nodeList: JSON.stringify(nodeList),
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        nodeList: JSON.stringify(filteredList),
+      });
+    }
     dispatch({ type: UPDATE_DOCU_SUCCESS, nodeList: filteredList });
   } catch (e) {
-    console.log("error: ", e);
     dispatch({ type: UPDATE_DOCU_FAIL, error: e });
   }
 };
@@ -140,15 +140,17 @@ export const createNode = (treeID, nodeList) => async (dispatch) => {
     //    nodeList: JSON.stringify(nodeList),
     //  },
     //});
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      nodeList: JSON.stringify(nodeList),
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        nodeList: JSON.stringify(nodeList),
+      });
+    }
     dispatch({ type: CREATE_NODE_SUCCESS, nodeList });
   } catch (e) {
     dispatch({ type: CREATE_NODE_FAIL });
@@ -188,16 +190,19 @@ export const deleteNode = (treeID, nodeList, linkList, node) => async (
     //    linkList: JSON.stringify(newLinkList),
     //  },
     //});
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      nodeList: JSON.stringify(newNodeList),
-      linkList: JSON.stringify(newLinkList),
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        nodeList: JSON.stringify(newNodeList),
+        linkList: JSON.stringify(newLinkList),
+      });
+    }
+
     dispatch({
       type: DELETE_NODE_SUCCESS,
       nodeList: newNodeList,
@@ -221,15 +226,18 @@ export const createLink = (treeID, linkList) => async (dispatch) => {
     //    linkList: JSON.stringify(linkList),
     //  },
     //});
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      linkList: JSON.stringify(linkList),
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        linkList: JSON.stringify(linkList),
+      });
+    }
+
     dispatch({ type: CREATE_LINK_SUCCESS, linkList });
   } catch (e) {
     dispatch({ type: CREATE_LINK_FAIL, error: e });
@@ -252,15 +260,18 @@ export const deleteLink = (treeID, linkList, link) => async (dispatch) => {
     //     linkList: JSON.stringify(newLinkList),
     //   },
     // });
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      linkList: JSON.stringify(newLinkList),
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        linkList: JSON.stringify(newLinkList),
+      });
+    }
+
     dispatch({ type: DELETE_LINK_SUCCESS, linkList: newLinkList });
   } catch (e) {
     dispatch({ type: DELETE_LINK_FAIL, error: e });
@@ -285,19 +296,20 @@ export const updateTree = (treeID, treeTitle, thumbnail) => async (
     //    thumbnail: thumbnail,
     //  },
     //});
-    const user = authService.currentUser;
-    const treeRef = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("trees")
-      .doc(treeID);
-    const res = await treeRef.update({
-      title: treeTitle,
-      thumbnail: thumbnail,
-    });
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      const res = await treeRef.update({
+        title: treeTitle,
+        thumbnail: thumbnail,
+      });
+    }
     dispatch({ type: UPDATE_TREE_SUCCESS, treeTitle });
   } catch (e) {
-    console.log("error: ", e);
     dispatch({ type: UPDATE_TREE_FAIL, error: e });
   }
 };

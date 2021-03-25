@@ -43,7 +43,7 @@ import { useHistory } from "react-router-dom";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
-  const headerRef = React.useRef(null);
+
   const history = useHistory();
   const dispatch = useDispatch();
   const { treeID } = match.params;
@@ -64,8 +64,8 @@ export const TreePage = React.memo(({ match }) => {
   });
 
   React.useEffect(() => {
-    if (headerRef.current && containerRef.current) {
-      initMap(headerRef.current, containerRef.current);
+    if (containerRef.current) {
+      initMap(containerRef.current);
     }
     return () => {
       dispatch(cleanUp());
@@ -84,16 +84,16 @@ export const TreePage = React.memo(({ match }) => {
     }
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
-    if (headerRef && containerRef.current) {
-      initGraph(headerRef.current, containerRef.current, nodeList, linkList);
+    if (containerRef.current) {
+      initGraph(containerRef.current, nodeList, linkList);
     }
-  }, [headerRef, containerRef, nodeList, linkList, isEditingTree]);
+  }, [containerRef, nodeList, linkList, isEditingTree]);
 
   //const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
 
   return (
-    <>
-      <TreeHeader ref={headerRef}>
+    <div style={{ padding: "2rem" }}>
+      <TreeHeader>
         {isEditingTree ? (
           <LargeTextInput
             value={treeTitle}
@@ -103,17 +103,23 @@ export const TreePage = React.memo(({ match }) => {
             maxLength="100"
           />
         ) : (
-          <LargeText>{treeTitle}</LargeText>
+          <TreeTitle>{treeTitle}</TreeTitle>
         )}
 
         <div style={{ display: "flex" }}>
-          <EditButton id="treeEditButton">
-            {isEditingTree ? <DoneIcon /> : <EditIcon />}
+          {!isEditingTree ? (
+            <EditButton id="treeEditButton">
+              <EditIcon />
+            </EditButton>
+          ) : null}
+          <EditButton id="treeSaveButton">
+            <DoneIcon />
           </EditButton>
         </div>
       </TreeHeader>
-      <TreeMap ref={containerRef} />
-    </>
+
+      <TreeMap id="treeMap" ref={containerRef} />
+    </div>
   );
 });
 
@@ -129,6 +135,7 @@ export const TreeHeader = styled.div`
   padding-right: 10vw;
   padding-bottom: 10px;
   padding-top: 10px;
+  //width: 100%;
   @media (max-width: 768px) {
     padding-left: 5vw;
     padding-right: 5vw;
@@ -141,9 +148,19 @@ export const TreeMap = styled.div`
   background-color: #ffffff;
   box-shadow: ${boxShadow.default};
   z-index: 0;
-  position: absolute;
+  //position: relative;
+  //position: fixed;
+  position: static;
+  // position: absolute;
   height: auto;
   width: 100%;
+`;
+
+export const TreeTitle = styled(LargeText)`
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 `;
 
 const mapWidth = 1200;
@@ -152,7 +169,7 @@ const linkWidth = "2.5px";
 const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
-export function initMap(headerRef, container) {
+export function initMap(container) {
   const svg = d3
     .select(container)
     .append("svg")
@@ -203,14 +220,9 @@ export function initMap(headerRef, container) {
   svg.append("g").attr("class", "labels");
 }
 
-export function initGraph(
-  headerRef,
-  container,
-  originalNodeList,
-  originalLinkList
-) {
-  const width = mapWidth;
-  const height = mapHeight;
+export function initGraph(container, originalNodeList, originalLinkList) {
+  const width = mapWidth || 1200;
+  const height = mapHeight || 700;
   let nodeList = originalNodeList;
   let linkList = originalLinkList;
 
@@ -219,14 +231,10 @@ export function initGraph(
 
   const selectedNodeList = reduxStore.getState().tree.selectedNodeList;
 
+  const treeID = reduxStore.getState().tree.treeID;
   const labelSize = "16px"; //fontSize.medium
   const deleteButtonLength = 15;
 
-  //let nodeList = reduxStore.getState().tree.nodeList; //returnNodeList();
-  //let linkList = reduxStore.getState().tree.linkList; //reduxStore.getState().techtree.linkList;
-  //let originalThumbnailURL = reduxStore.getState().techtree.techtreeData
-  //  .thumbnail;
-  //let tempThumbnailURL = reduxStore.getState().techtree.techtreeData.thumbnail;
   let tempPairingNodes = {
     startNodeID: null,
     startX: null,
@@ -237,26 +245,18 @@ export function initGraph(
     endY: null,
   };
 
-  // tree edit 상태도 d3 로 처리하자.
-  // docu edit 은 modal 의 로컬 스테이트로 처리하고.
-  // node 를 클릭하면 실제 DOM을 생성하고 삭제하고 하는 식으로 하자.
-
-  //const header = d3.select(headerRef);
-  //header.append("text").text("hello");
-
   const svg = d3.select(container).select("svg");
   const linkGroup = svg.select(".links");
   const nodeGroup = svg.select(".nodes");
   const labelGroup = svg.select(".labels");
 
   const treeEditButton = d3.select("#treeEditButton").on("click", () => {
-    if (reduxStore.getState().tree.isEditingTree) {
-      // 썸네일도 첨부해야함.
-      changeTreeInfo();
-      reduxStore.dispatch(finishEditTree());
-    } else {
-      reduxStore.dispatch(editTree());
-    }
+    reduxStore.dispatch(editTree());
+  });
+  const treeSaveButton = d3.select("#treeSaveButton").on("click", () => {
+    // 썸네일도 첨부해야함.
+    changeTreeInfo();
+    reduxStore.dispatch(finishEditTree());
   });
 
   function changeTreeInfo() {
@@ -268,18 +268,10 @@ export function initGraph(
       const base64 = btoa(decoded);
       const thumbnailURL = `data:image/svg+xml;base64,${base64}`;
       reduxStore.dispatch(
-        updateTree(
-          reduxStore.getState().tree.treeID,
-          reduxStore.getState().tree.treeTitle,
-          thumbnailURL
-        )
+        updateTree(treeID, reduxStore.getState().tree.treeTitle, thumbnailURL)
       );
     }
   }
-
-  const treeDeleteButton = d3.select("#treeDelete").on("click", () => {
-    Swal.fire("삭제합니까?");
-  });
 
   // tree 수정, 삭제, fork, save 버튼 전부 여기서 만들자
   function initLink() {
@@ -316,9 +308,7 @@ export function initGraph(
       .on("click", async (link) => {
         const deleteOK = window.confirm("Delete Connection?");
         if (deleteOK) {
-          await reduxStore.dispatch(
-            deleteLink(reduxStore.getState().tree.treeID, linkList, link)
-          );
+          await reduxStore.dispatch(deleteLink(treeID, linkList, link));
           initLink();
           changeTreeInfo();
         } else {
@@ -328,9 +318,7 @@ export function initGraph(
       .on("touch", async (link) => {
         const deleteOK = window.confirm(`Delete Connection?`);
         if (deleteOK) {
-          await reduxStore.dispatch(
-            deleteLink(reduxStore.getState().tree.treeID, linkList, link)
-          );
+          await reduxStore.dispatch(deleteLink(treeID, linkList, link));
           initLink();
           changeTreeInfo();
         } else {
@@ -406,7 +394,7 @@ export function initGraph(
 
           ReactDOM.render(
             <SelectedNodeModal defaultZ={max + 1} node={node} />,
-            document.getElementById(d.id)
+            document.getElementById(d.id) //document.getElementById("treeMap")
           );
         }
       })
@@ -444,12 +432,8 @@ export function initGraph(
               node.x = d3.event.x;
               node.y = d3.event.y;
 
-              await reduxStore.dispatch(
-                createLink(reduxStore.getState().tree.treeID, linkList)
-              );
-              await reduxStore.dispatch(
-                createNode(reduxStore.getState().tree.treeID, nodeList)
-              );
+              await reduxStore.dispatch(createLink(treeID, linkList));
+              await reduxStore.dispatch(createNode(treeID, nodeList));
               changeTreeInfo();
             })
         )
@@ -552,9 +536,7 @@ export function initGraph(
                     tempPairingNodes.id = `link${uid(20)}`;
                     linkList.push({ ...tempPairingNodes });
 
-                    await reduxStore.dispatch(
-                      createLink(reduxStore.getState().tree.treeID, linkList)
-                    );
+                    await reduxStore.dispatch(createLink(treeID, linkList));
                     await initLink();
                     changeTreeInfo();
                     svg.select(".tempLine").style("opacity", "0");
@@ -608,9 +590,7 @@ export function initGraph(
       .on("click", async (d) => {
         const deleteOK = window.confirm(`Delete ${d.name} Node?`);
         if (deleteOK) {
-          reduxStore.dispatch(
-            deleteNode(reduxStore.getState().tree.treeID, nodeList, linkList, d)
-          );
+          reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
           initNode();
           changeTreeInfo();
         } else {
@@ -620,9 +600,7 @@ export function initGraph(
       .on("touch", async (d) => {
         const deleteOK = window.confirm(`Delete ${d.name} Node?`);
         if (deleteOK) {
-          reduxStore.dispatch(
-            deleteNode(reduxStore.getState().tree.treeID, nodeList, d)
-          );
+          reduxStore.dispatch(deleteNode(treeID, nodeList, d));
           initNode();
           changeTreeInfo();
         } else {
@@ -651,6 +629,9 @@ export function initGraph(
       })
       .style("font-size", labelSize)
       .style("user-select", "none")
+      .style("-webkit-user-select", "none")
+      .style("-moz-user-select", "none")
+      .style("-ms-user-select", "none")
       .style("text-shadow", "1px 1px 1px #ffffff");
   }
 
@@ -673,9 +654,7 @@ export function initGraph(
         childNodeID: [],
       };
       nodeList = [...nodeList, createdNode];
-      await reduxStore.dispatch(
-        createNode(reduxStore.getState().tree.treeID, nodeList)
-      );
+      await reduxStore.dispatch(createNode(treeID, nodeList));
       changeTreeInfo();
       initNode();
     }
