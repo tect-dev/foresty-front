@@ -1,5 +1,10 @@
 import { DefaultButton } from "../components/Buttons";
-import { XXXLargeText, XXLargeText } from "../components/Texts";
+import {
+  XXXLargeText,
+  XXLargeText,
+  XLargeText,
+  LargeText,
+} from "../components/Texts";
 import { StyledTagBlock } from "../components/TagBlock";
 
 import { TreeHeader, TreeMap, TreeTitle } from "./Tree";
@@ -14,17 +19,12 @@ import {
   TrashIcon,
   EditButton,
 } from "../components/Buttons";
-import { LargeText } from "../components/Texts";
 import { LargeTextInput } from "../components/Inputs";
 import xCircle from "../assets/xCircle.svg";
 
 import ReactDOM from "react-dom";
 import * as d3 from "d3";
-import {
-  returnNodeList,
-  returnLinkList,
-  returnSelectedList,
-} from "../lib/testCode";
+
 import { colorPalette, boxShadow } from "../lib/style";
 import { reduxStore } from "../index";
 import { useSelector, useDispatch } from "react-redux";
@@ -55,58 +55,64 @@ export const HomePage = () => {
   return (
     <MainWrapper className="Home" style={{}}>
       <BlockWrapper>
-        <XXXLargeText>Cultivate Your Knowledge</XXXLargeText>
-        <br />
-        <br />
-        <div>Intuitive Note Taking Tool</div>
-        <br />
-        <br />
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <StyledTagBlock style={{ background: colorPalette.blue5 }}>
-            Graph Based
-          </StyledTagBlock>
-          <StyledTagBlock style={{ background: colorPalette.yellow5 }}>
-            Click and Drag
-          </StyledTagBlock>
-          <StyledTagBlock style={{ background: colorPalette.red7 }}>
-            Multi Window
-          </StyledTagBlock>
-        </div>
-        <br />
-        <div>
-          <DefaultButton>
-            {!loginCheck ? (
-              <Link to="/login">Get Started</Link>
-            ) : (
-              <Link to={`/forest/${myID}`}>Get Started</Link>
-            )}
-          </DefaultButton>
-        </div>
+        <TwoComponentsWrapper>
+          <div>
+            <XXXLargeText>Cultivate Your Knowledge</XXXLargeText>
+            <br />
+            <br />
+
+            <XLargeText>Click and Drag. Intuitive Note Taking</XLargeText>
+            <br />
+            <br />
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <StyledTagBlock style={{ background: colorPalette.blue5 }}>
+                Graph Based
+              </StyledTagBlock>
+              <StyledTagBlock style={{ background: colorPalette.yellow5 }}>
+                Click and Drag
+              </StyledTagBlock>
+              <StyledTagBlock style={{ background: colorPalette.red7 }}>
+                Multi Window
+              </StyledTagBlock>
+            </div>
+            <br />
+            <div>
+              <DefaultButton>
+                {!loginCheck ? (
+                  <Link to="/login">Get Started</Link>
+                ) : (
+                  <Link to={`/forest/${myID}`}>Get Started</Link>
+                )}
+              </DefaultButton>
+            </div>
+          </div>
+          <div style={{ width: "90%" }}>
+            <VideoWrapper
+              src="https://foresty-tutorial.s3.ap-northeast-2.amazonaws.com/home-vidoe.mp4"
+              autoPlay={true}
+              playsInline={true}
+              muted={true}
+              loop={true}
+            ></VideoWrapper>
+          </div>
+        </TwoComponentsWrapper>
       </BlockWrapper>
 
-      <BlockWrapper>
-        <VideoWrapper
-          src="https://foresty-tutorial.s3.ap-northeast-2.amazonaws.com/home-vidoe.mp4"
-          autoPlay={true}
-          playsInline={true}
-          muted={true}
-          loop={true}
-        ></VideoWrapper>
-      </BlockWrapper>
       <BlockWrapper>
         <DemoTree />
       </BlockWrapper>
       <BlockWrapper>
         <XXLargeText>Today, we're moving to Beta.</XXLargeText>
         <br />
-        <XXLargeText>
-          Join beta program and get a <br />
-          forever access
+        <br />
+        <XLargeText>
+          Join beta program and get a forever access
           <br />
-          (all of Foresty's services are available for a life).
-          <br />
-          Only limited users can get beta program.
-        </XXLargeText>
+          (all of Foresty's services are available for a life)
+        </XLargeText>
+        <br />
+        <br />
+        <LargeText> No credit card required</LargeText>
         <div>
           <DefaultButton>
             {!loginCheck ? (
@@ -129,6 +135,16 @@ const MainWrapper = styled.div`
   margin-right: auto;
   grid-template-columns: 1fr;
   @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const TwoComponentsWrapper = styled.div`
+  display: grid;
+  justify-content: space-evenly;
+  justify-items: center;
+  grid-template-columns: 1fr 2fr;
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -400,7 +416,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
             return false;
           }
         }).length;
-        return node.radius * (1 + relatedNumber / 10);
+        return node.radius * (1 + relatedNumber / 20);
       })
       .style("fill", (d) => d.fillColor)
       .attr("cx", (d) => {

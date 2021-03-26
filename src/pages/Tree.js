@@ -306,24 +306,56 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         return `delete${d.id}`;
       })
       .on("click", async (link) => {
-        const deleteOK = window.confirm("Delete Connection?");
-        if (deleteOK) {
-          await reduxStore.dispatch(deleteLink(treeID, linkList, link));
-          initLink();
-          changeTreeInfo();
-        } else {
-          return;
-        }
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Connection has been deleted.", "success");
+            reduxStore.dispatch(deleteLink(treeID, linkList, link));
+            initLink();
+            changeTreeInfo();
+          }
+        });
+        //const deleteOK = window.confirm("Delete Connection?");
+        //if (deleteOK) {
+        //  await reduxStore.dispatch(deleteLink(treeID, linkList, link));
+        //  initLink();
+        //  changeTreeInfo();
+        //} else {
+        //  return;
+        //}
       })
       .on("touch", async (link) => {
-        const deleteOK = window.confirm(`Delete Connection?`);
-        if (deleteOK) {
-          await reduxStore.dispatch(deleteLink(treeID, linkList, link));
-          initLink();
-          changeTreeInfo();
-        } else {
-          return;
-        }
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Connection has been deleted.", "success");
+            reduxStore.dispatch(deleteLink(treeID, linkList, link));
+            initLink();
+            changeTreeInfo();
+          }
+        });
+        //const deleteOK = window.confirm(`Delete Connection?`);
+        //if (deleteOK) {
+        //  await reduxStore.dispatch(deleteLink(treeID, linkList, link));
+        //  initLink();
+        //  changeTreeInfo();
+        //} else {
+        //  return;
+        //}
       })
       .attr("display", () => {
         if (reduxStore.getState().tree.isEditingTree) {
@@ -348,7 +380,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
             return false;
           }
         }).length;
-        return node.radius * (1 + relatedNumber / 10);
+        return node.radius * (1 + relatedNumber / 20);
       })
       .style("fill", (d) => d.fillColor)
       .attr("cx", (d) => {
@@ -588,24 +620,56 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         }
       })
       .on("click", async (d) => {
-        const deleteOK = window.confirm(`Delete ${d.name} Node?`);
-        if (deleteOK) {
-          reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
-          initNode();
-          changeTreeInfo();
-        } else {
-          return;
-        }
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Node has been deleted.", "success");
+            reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
+            initNode();
+            changeTreeInfo();
+          }
+        });
+        //const deleteOK = window.confirm(`Delete ${d.name} Node?`);
+        //if (deleteOK) {
+        //  reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
+        //  initNode();
+        //  changeTreeInfo();
+        //} else {
+        //  return;
+        //}
       })
       .on("touch", async (d) => {
-        const deleteOK = window.confirm(`Delete ${d.name} Node?`);
-        if (deleteOK) {
-          reduxStore.dispatch(deleteNode(treeID, nodeList, d));
-          initNode();
-          changeTreeInfo();
-        } else {
-          return;
-        }
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Node has been deleted.", "success");
+            reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
+            initNode();
+            changeTreeInfo();
+          }
+        });
+        //const deleteOK = window.confirm(`Delete ${d.name} Node?`);
+        //if (deleteOK) {
+        //  reduxStore.dispatch(deleteNode(treeID, nodeList, d));
+        //  initNode();
+        //  changeTreeInfo();
+        //} else {
+        //  return;
+        //}
       })
       .style("cursor", "pointer");
   }
