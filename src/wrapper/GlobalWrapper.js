@@ -1,4 +1,5 @@
 import { Nav } from "../components/Nav";
+import { Footer } from "../components/Footer";
 
 export const GlobalWrapper = ({ children }) => {
   return (
@@ -6,6 +7,7 @@ export const GlobalWrapper = ({ children }) => {
       <Nav />
 
       {children}
+      <Footer />
     </>
   );
 };

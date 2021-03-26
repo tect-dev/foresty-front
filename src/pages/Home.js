@@ -56,7 +56,7 @@ export const HomePage = () => {
     <MainWrapper className="Home" style={{}}>
       <BlockWrapper>
         <TwoComponentsWrapper>
-          <div>
+          <div style={{ paddingBottom: "2rem" }}>
             <XXXLargeText>Cultivate Your Knowledge</XXXLargeText>
             <br />
             <br />
@@ -152,6 +152,9 @@ const TwoComponentsWrapper = styled.div`
 const BlockWrapper = styled.div`
   padding: 3rem;
   text-align: center;
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const VideoWrapper = styled.video`

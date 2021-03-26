@@ -231,7 +231,7 @@ export const Container = styled.div`
   width: 350px;
   padding: 25px;
   @media (max-width: 650px) {
-    width: 95vw;
+    width: 300px;
   }
 `;
 
