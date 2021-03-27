@@ -46,7 +46,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "testdeploy": "react-scripts build && aws s3 sync ./build s3://tect-front-dev && aws cloudfront create-invalidation --distribution-id E16ZTBATL570K4 --paths '/*'"
+    "testdeploy": "react-scripts build && aws s3 sync ./build s3://tect-front-dev && aws cloudfront create-invalidation --distribution-id E16ZTBATL570K4 --paths '/*'",
+    "deploy": "aws s3 sync ./build s3://foresty-front-release && aws cloudfront create-invalidation --distribution-id E36AKTZO9F9BO4 --paths '/*'"
   },
   "eslintConfig": {
     "extends": [
