@@ -1,3 +1,5 @@
+![home tutorial.gif](https://tectimage.s3.ap-northeast-2.amazonaws.com/2891616922575100.gif)
+
 ### Framework & Libraries
 
 * React (Basic rendering, Multi-window feature.)
