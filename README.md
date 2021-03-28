@@ -1,4 +1,4 @@
-![demo](https://tectimage.s3.ap-northeast-2.amazonaws.com/2891616922575100.gif)
+![home](https://user-images.githubusercontent.com/33917337/112747527-0513b500-8ff1-11eb-8288-a2ec4d1b07f3.gif)
 
 ### Framework & Libraries
 
