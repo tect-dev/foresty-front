@@ -35,6 +35,7 @@ import {
   createLink,
   deleteLink,
   cleanUp,
+  updateTreePrivacy,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
@@ -56,6 +57,9 @@ export const TreePage = React.memo(({ match }) => {
   const { treeTitle } = useSelector((state) => {
     return { treeTitle: state.tree.treeTitle };
   });
+  const { treePublic } = useSelector((state) => {
+    return { treePublic: state.tree.treePublic };
+  });
   const { isEditingTree, loading } = useSelector((state) => {
     return {
       isEditingTree: state.tree.isEditingTree,
@@ -72,16 +76,17 @@ export const TreePage = React.memo(({ match }) => {
     };
   }, []);
   React.useEffect(() => {
-    if (treeID) {
-      authService.onAuthStateChanged((user) => {
-        if (user) {
-          dispatch(readTree(myID, treeID));
-        } else {
-          Swal.fire("Login Required!");
-          history.push("/login");
-        }
-      });
-    }
+    dispatch(readTree(myID, treeID));
+    //  if (treeID) {
+    //    authService.onAuthStateChanged((user) => {
+    //      if (user) {
+    //        dispatch(readTree(myID, treeID));
+    //      } else {
+    //        Swal.fire("Login Required!");
+    //        history.push("/login");
+    //      }
+    //    });
+    //  }
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (containerRef.current) {
@@ -94,27 +99,86 @@ export const TreePage = React.memo(({ match }) => {
   return (
     <div style={{ padding: "2rem" }}>
       <TreeHeader>
-        {isEditingTree ? (
-          <LargeTextInput
-            value={treeTitle}
-            onChange={(e) => {
-              dispatch(changeTreeTitle(e.target.value));
-            }}
-            maxLength="100"
-          />
+        {treePublic ? (
+          <div>
+            this tree is{" "}
+            <button
+              onClick={() => {
+                Swal.fire({
+                  title: "Do you want to hide the tree?",
+                  //text: "You won't be able to revert this!",
+                  icon: "warning",
+                  confirmButtonColor: "#3085d6", // "#3085d6",
+                  confirmButtonText: "Yes, hide it!",
+                  showCancelButton: true,
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    dispatch(updateTreePrivacy(treeID, false));
+                    Swal.fire(
+                      "Done!",
+                      "Now Other cannot see this tree.",
+                      "success"
+                    );
+                  }
+                });
+              }}
+            >
+              published
+            </button>
+          </div>
         ) : (
-          <TreeTitle>{treeTitle}</TreeTitle>
+          <div>
+            this tree is{" "}
+            <button
+              onClick={() => {
+                Swal.fire({
+                  title: "Do you want to publish the tree?",
+                  //text: "You won't be able to revert this!",
+                  icon: "warning",
+                  confirmButtonColor: "#3085d6", // "#3085d6",
+
+                  confirmButtonText: "Yes, publish it!",
+                  showCancelButton: true,
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    dispatch(updateTreePrivacy(treeID, true));
+                    Swal.fire(
+                      "Published!",
+                      "Tree has been published.",
+                      "success"
+                    );
+                  }
+                });
+              }}
+            >
+              private
+            </button>
+          </div>
         )}
 
-        <div style={{ display: "flex" }}>
-          {!isEditingTree ? (
-            <EditButton id="treeEditButton">
-              <EditIcon />
+        <div>
+          {isEditingTree ? (
+            <LargeTextInput
+              value={treeTitle}
+              onChange={(e) => {
+                dispatch(changeTreeTitle(e.target.value));
+              }}
+              maxLength="100"
+            />
+          ) : (
+            <TreeTitle>{treeTitle}</TreeTitle>
+          )}
+
+          <div style={{ display: "flex" }}>
+            {!isEditingTree ? (
+              <EditButton id="treeEditButton">
+                <EditIcon />
+              </EditButton>
+            ) : null}
+            <EditButton id="treeSaveButton">
+              <DoneIcon />
             </EditButton>
-          ) : null}
-          <EditButton id="treeSaveButton">
-            <DoneIcon />
-          </EditButton>
+          </div>
         </div>
       </TreeHeader>
 
