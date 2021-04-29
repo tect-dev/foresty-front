@@ -47,7 +47,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   function startDrag(e) {
     //modal.style.width = e.target.offsetWidth * 2 + "px";
     const modal = document.getElementById(modalID);
-    if (!isEditing && e.target.tagName === "DIV") {
+    if (e.target.tagName === "DIV") {
       onDrag = true;
       relativeX = e.clientX - e.target.getBoundingClientRect().x;
       relativeY = e.clientY - e.target.getBoundingClientRect().y;
@@ -97,16 +97,21 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
         zIndex: defaultZ,
         top:
           window.pageYOffset +
-          document.getElementById("treeMap").getBoundingClientRect().y +
+          document.getElementsByClassName(node.id)[0].getBoundingClientRect()
+            .y +
+          30 +
           "px",
-        //30 +
-        //document.getElementById("treeMap").getBoundingClientRect().y +
-        //"px",
+        left:
+          window.pageXOffset +
+          document.getElementsByClassName(node.id)[0].getBoundingClientRect()
+            .x +
+          30 +
+          "px",
       }}
     >
       <DocuHeaderArea>
         {isEditing ? (
-          <DocuHeaderEdited onMouseMove={() => {}}>
+          <DocuHeaderEdited onMouseDown={startDrag} onMouseUp={endDrag}>
             <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
               <LargeTextInput
                 value={title}
@@ -221,7 +226,7 @@ const DocuHeaderArea = styled.div`
   position: sticky;
   position: -webkit-sticky;
   top: 0px;
-  z-index: 10;
+  z-index: 1;
 `;
 
 const DocuHeader = styled.div`
@@ -237,12 +242,14 @@ const DocuHeader = styled.div`
 `;
 
 const DocuHeaderEdited = styled.div`
+  background-color: ${colorPalette.white0};
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 5px;
   padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
+  cursor: grab;
 `;
 
 const DocuBodyArea = styled.div`
