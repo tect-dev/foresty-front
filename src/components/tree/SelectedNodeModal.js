@@ -3,6 +3,7 @@ import { MarkdownEditor } from "../MarkdownEditor";
 import { EditButton, XIcon, EditIcon, DoneIcon } from "../Buttons";
 import { LargeTextInput } from "../Inputs";
 import { LargeText } from "../Texts";
+import { BlockEditor } from "../BlockEditor";
 
 import React from "react";
 import styled from "styled-components";
@@ -103,82 +104,83 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
         //"px",
       }}
     >
-      {isEditing ? (
-        <DocuHeaderEdited onMouseMove={() => {}}>
-          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
-            <LargeTextInput
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-              }}
-              placeholder="title..."
-              maxLength={50}
-            />
-          </div>
-          <div>
-            <EditButton
-              onClick={() => {
-                if (isEditing) {
-                  finishDocuEdit();
-                }
-                setIsEditing(!isEditing);
-              }}
-            >
-              <DoneIcon />
-            </EditButton>
-            <EditButton
-              onClick={() => {
-                reduxStore.dispatch(closeNode(node));
-              }}
-            >
-              <XIcon />
-            </EditButton>
-          </div>
-        </DocuHeaderEdited>
-      ) : null}
-      {!isEditing ? (
-        <DocuHeader onMouseDown={startDrag} onMouseUp={endDrag}>
-          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
-            <LargeText>{title}</LargeText>
-          </div>
-          <div>
-            <EditButton
-              onClick={() => {
-                if (isEditing) {
-                  finishDocuEdit();
-                }
-                setIsEditing(!isEditing);
-              }}
-            >
-              <EditIcon />
-            </EditButton>
-            <EditButton
-              onClick={() => {
-                reduxStore.dispatch(closeNode(node));
-              }}
-            >
-              <XIcon />
-            </EditButton>
-          </div>
-        </DocuHeader>
-      ) : null}
-
-      {isEditing ? (
-        <NodeColorButtonArea>
-          {colorList.map((color) => {
-            return (
-              <NodeColorButton
-                style={{ background: color }}
-                onClick={() => {
-                  setNodeColor(color);
-                  reduxStore.dispatch(changeNodeColor(node.id, color));
+      <DocuHeaderArea>
+        {isEditing ? (
+          <DocuHeaderEdited onMouseMove={() => {}}>
+            <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
+              <LargeTextInput
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
                 }}
-              ></NodeColorButton>
-            );
-          })}
-        </NodeColorButtonArea>
-      ) : null}
+                placeholder="title..."
+                maxLength={50}
+              />
+            </div>
+            <div>
+              <EditButton
+                onClick={() => {
+                  if (isEditing) {
+                    finishDocuEdit();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                <DoneIcon />
+              </EditButton>
+              <EditButton
+                onClick={() => {
+                  reduxStore.dispatch(closeNode(node));
+                }}
+              >
+                <XIcon />
+              </EditButton>
+            </div>
+          </DocuHeaderEdited>
+        ) : null}
+        {!isEditing ? (
+          <DocuHeader onMouseDown={startDrag} onMouseUp={endDrag}>
+            <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
+              <LargeText>{title}</LargeText>
+            </div>
+            <div>
+              <EditButton
+                onClick={() => {
+                  if (isEditing) {
+                    finishDocuEdit();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                <EditIcon />
+              </EditButton>
+              <EditButton
+                onClick={() => {
+                  reduxStore.dispatch(closeNode(node));
+                }}
+              >
+                <XIcon />
+              </EditButton>
+            </div>
+          </DocuHeader>
+        ) : null}
 
+        {isEditing ? (
+          <NodeColorButtonArea>
+            {colorList.map((color) => {
+              return (
+                <NodeColorButton
+                  style={{ background: color }}
+                  onClick={() => {
+                    setNodeColor(color);
+                    reduxStore.dispatch(changeNodeColor(node.id, color));
+                  }}
+                ></NodeColorButton>
+              );
+            })}
+          </NodeColorButtonArea>
+        ) : null}
+      </DocuHeaderArea>
       <DocuBodyArea>
         {isEditing ? (
           <MarkdownEditor bindingText={text} bindingSetter={setText} />
@@ -204,12 +206,22 @@ const ModalWrapper = styled.div`
   //z-index: 100;
   background-color: #ffffff;
   border: 1px solid ${colorPalette.gray3};
-  width: 700px;
-  height: 100vh;
+
+  width: 650px;
+
+  height: 90vh;
+  resize: both;
   overflow: scroll;
   @media (max-width: 768px) {
     width: 90vw;
   }
+`;
+
+const DocuHeaderArea = styled.div`
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
+  z-index: 10;
 `;
 
 const DocuHeader = styled.div`

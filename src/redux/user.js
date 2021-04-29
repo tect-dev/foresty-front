@@ -1,5 +1,7 @@
 import Swal from "sweetalert2";
 import { authService } from "../lib/firebase";
+import { uid } from "uid";
+import axios from "axios";
 
 const initialState = {
   loading: false,
@@ -9,6 +11,7 @@ const initialState = {
   myID: null,
   myNickname: "",
   loginState: false,
+  verificationCode: "",
 };
 
 const INIT_USER = "user/INIT_USER";
@@ -22,6 +25,29 @@ export const logout = () => {
   authService.signOut();
   localStorage.removeItem("user");
   return { type: LOG_OUT };
+};
+
+const SEND_SIGNUP_VERIFICATION_EMAIL_TRY =
+  "user/SEND_SIGNUP_VERIFICATION_EMAIL_TRY";
+const SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS =
+  "user/SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS";
+const SEND_SIGNUP_VERIFICATION_EMAIL_FAIL =
+  "user/SEND_SIGNUP_VERIFICATION_EMAIL_FAIL";
+export const sendSignUpVerificationEmail = (email) => async (dispatch) => {
+  const uid4 = uid(4);
+  console.log(uid4);
+  dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_TRY });
+  try {
+    //axios({method:"post",url:""})
+    // axios post 이용해서 서버에 email 값을 보낸다. 그럼 서버에선 해당 email로 v
+    // 보내는게 성공했으면 verificationCode 에다가 uid4 를 집어넣는다.
+    //https://asia-northeast3-tect-for-development.cloudfunctions.net/sendEmailVerificationCode
+    Swal.fire("e-Mail Went Smoothly", "Please Check Your Mail Box!");
+    dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS, uid4 });
+  } catch (e) {
+    Swal.fire("Sorry!", "Error. Please Re-try Verification");
+    dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_FAIL, error: e });
+  }
 };
 
 const SIGNUP_TRY = "user/SIGNUP_SUCCESS";
@@ -54,6 +80,24 @@ export const login = (email, password) => async (dispatch) => {
 
 export default function user(state = initialState, action) {
   switch (action.type) {
+    case SEND_SIGNUP_VERIFICATION_EMAIL_TRY:
+      return {
+        ...state,
+        verificationCode: "",
+        loading: true,
+      };
+    case SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS:
+      return {
+        ...state,
+        verificationCode: action.uid4,
+        loading: false,
+      };
+    case SEND_SIGNUP_VERIFICATION_EMAIL_FAIL:
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
     case LOG_IN_TRY:
       return {
         ...state,
