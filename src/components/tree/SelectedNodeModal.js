@@ -36,7 +36,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       relativeX = 0;
       relativeY = 0;
     });
-  }, [isEditing]);
+  }, [isEditing, title, text]);
 
   const modalID = `domInModal${node.id}`;
   let onDrag; // = false

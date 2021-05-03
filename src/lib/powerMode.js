@@ -2,6 +2,8 @@ import getCaretCoordinates from "textarea-caret";
 import ReactDOM from "react-dom";
 import _ from "lodash";
 import React, { PropTypes } from "react";
+import { togglePowerMode } from "../redux/user";
+import { reduxStore } from "../index";
 
 const MAX_PARTICLES = 500;
 const PARTICLE_NUM_RANGE = () => 5 + Math.round(Math.random() * 5);
@@ -45,22 +47,26 @@ class RagePower extends React.Component {
     this._particles = [];
   }
 
-  //componentDidMount() {
-  //  this.canvas = document.createElement("canvas");
-  //  this.canvas.width = window.innerWidth;
-  //  this.canvas.height = window.innerHeight;
-  //  this.canvas.style.position = "absolute";
-  //  this.canvas.style.top = "0";
-  //  this.canvas.style.pointerEvents = "none";
-  //  this.canvas.style.zIndex = "10000"; // 이렇게 하드코딩 하면 안됨...
-  //  this.canvasContext = this.canvas.getContext("2d");
-  //  document.body.appendChild(this.canvas);
-  //  window.requestAnimationFrame(this._drawFrame);
-  //}
-  //
-  //componentWillUnmount() {
-  //  document.body.removeChild(this.canvas);
-  //}
+  componentDidMount() {
+    if (reduxStore.getState().user.powerMode) {
+      this.canvas = document.createElement("canvas");
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+      this.canvas.style.position = "absolute";
+      this.canvas.style.top = "0";
+      this.canvas.style.pointerEvents = "none";
+      this.canvas.style.zIndex = "10000"; // 이렇게 하드코딩 하면 안됨...
+      this.canvasContext = this.canvas.getContext("2d");
+      document.body.appendChild(this.canvas);
+      window.requestAnimationFrame(this._drawFrame);
+    }
+  }
+
+  componentWillUnmount() {
+    if (reduxStore.getState().user.powerMode && this.canvas) {
+      document.body.removeChild(this.canvas);
+    }
+  }
 
   render() {
     const { children, style, colors: _, ...others } = this.props;

@@ -15,6 +15,11 @@ const initialState = {
   powerMode: false,
 };
 
+const TOGGLE_POWER_MODE = "user/TOGGLE_POWER_MODE";
+export const togglePowerMode = () => {
+  return { type: TOGGLE_POWER_MODE };
+};
+
 const INIT_USER = "user/INIT_USER";
 export const authCheck = (user) => {
   localStorage.setItem("user", JSON.stringify(user));
@@ -81,6 +86,10 @@ export const login = (email, password) => async (dispatch) => {
 
 export default function user(state = initialState, action) {
   switch (action.type) {
+    case TOGGLE_POWER_MODE:
+      return {
+        powerMode: !state.powerMode,
+      };
     case SEND_SIGNUP_VERIFICATION_EMAIL_TRY:
       return {
         ...state,
