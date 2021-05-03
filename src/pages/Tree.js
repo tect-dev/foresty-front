@@ -85,7 +85,7 @@ export const TreePage = React.memo(({ match }) => {
     };
   }, []);
   React.useEffect(() => {
-    dispatch(readTree(myID, treeID));
+    dispatch(readTree(myID, treeID, treeAuthorID));
     //  if (treeID) {
     //    authService.onAuthStateChanged((user) => {
     //      if (user) {

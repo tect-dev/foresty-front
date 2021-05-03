@@ -1,7 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { authService, db } from "../lib/firebase";
-import {demoTreeID} from '../lib/constants'
+import { demoTreeID } from "../lib/constants";
 
 const initialState = {
   treeID: "",
@@ -49,7 +49,7 @@ export const finishEditTree = () => {
   return { type: FINISH_EDIT_TREE };
 };
 
-export const readTree = (userID, treeID) => async (
+export const readTree = (userID, treeID, treeAuthorID) => async (
   dispatch,
   getState,
   { history }
@@ -68,45 +68,44 @@ export const readTree = (userID, treeID) => async (
     // const treeAuthorNickname: res.data.author.dispalyName
     if (treeID !== demoTreeID) {
       await db
-      .collectionGroup("trees")
-      .where("treeID", "==", treeID)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach((treeDoc) => {
-          const user = authService.currentUser;
-          authService.onAuthStateChanged((user) => {
-            if (user || treeDoc.data().treePublic) {
-              // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
-              const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
-              const parsedLinkList = JSON.parse(treeDoc.data().linkList);
-              dispatch({
-                type: READ_TREE_SUCCESS,
-                nodeList: parsedNodeList,
-                linkList: parsedLinkList,
-                treeTitle: treeDoc.data().title,
-                treeAuthorID: treeDoc.data().treeAuthorID,
-                treeAuthorNickname: treeDoc.data().treeAuthorNickname,
-                treeID,
-                treePublic: treeDoc.data().treePublic || false,
-              });
-            } else {
-              dispatch({ type: READ_TREE_FAIL, error: {} });
-              Swal.fire("It's not public tree!");
-              history.push("/login");
-            }
+        .collectionGroup("trees")
+        .where("treeID", "==", treeID)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((treeDoc) => {
+            const user = authService.currentUser;
+            authService.onAuthStateChanged((user) => {
+              if (userID === treeAuthorID || treeDoc.data().treePublic) {
+                // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
+                const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
+                const parsedLinkList = JSON.parse(treeDoc.data().linkList);
+                dispatch({
+                  type: READ_TREE_SUCCESS,
+                  nodeList: parsedNodeList,
+                  linkList: parsedLinkList,
+                  treeTitle: treeDoc.data().title,
+                  treeAuthorID: treeDoc.data().treeAuthorID,
+                  treeAuthorNickname: treeDoc.data().treeAuthorNickname,
+                  treeID,
+                  treePublic: treeDoc.data().treePublic || false,
+                });
+              } else {
+                dispatch({ type: READ_TREE_FAIL, error: {} });
+                Swal.fire("It's not public tree!");
+                history.push("/");
+              }
+            });
           });
         });
-      });
     } else {
       await db
-      .collectionGroup("trees")
-      .where("treeID", "==", treeID)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach((treeDoc) => {
-          const user = authService.currentUser;
-          authService.onAuthStateChanged((user) => {
-            
+        .collectionGroup("trees")
+        .where("treeID", "==", treeID)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((treeDoc) => {
+            const user = authService.currentUser;
+            authService.onAuthStateChanged((user) => {
               // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
               const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
               const parsedLinkList = JSON.parse(treeDoc.data().linkList);
@@ -120,12 +119,10 @@ export const readTree = (userID, treeID) => async (
                 treeID,
                 treePublic: treeDoc.data().treePublic || false,
               });
-            
+            });
           });
         });
-      });
     }
-  
   } catch (error) {
     dispatch({ type: READ_TREE_FAIL, error });
   }
