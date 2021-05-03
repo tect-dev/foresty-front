@@ -9,6 +9,7 @@ import {
   FaSuperscript,
   FaHeading,
 } from "react-icons/fa";
+import RagePower from "../lib/powerMode";
 
 import axios from "axios";
 
@@ -249,27 +250,29 @@ export const MarkdownEditor = ({
         </MarkdownButton>
       </MarkdownToolkit>
       <div>
-        <StyledTextarea
-          ref={textareaRef}
-          id="content"
-          placeholder="..."
-          value={bindingText}
-          onChange={onChangeText}
-          maxLength={10000}
-          onDrop={onDrop}
-          style={{
-            width: width,
-            height: height,
-            backgroundColor: () => {
-              if (loading) {
-                return "#999999";
-              } else {
-                return "#000000";
-              }
-            },
-          }}
-          onKeyDown={onKeydownTap}
-        ></StyledTextarea>
+        <RagePower>
+          <StyledTextarea
+            ref={textareaRef}
+            id="content"
+            placeholder="..."
+            value={bindingText}
+            onChange={onChangeText}
+            maxLength={10000}
+            onDrop={onDrop}
+            style={{
+              width: width,
+              height: height,
+              backgroundColor: () => {
+                if (loading) {
+                  return "#999999";
+                } else {
+                  return "#000000";
+                }
+              },
+            }}
+            onKeyDown={onKeydownTap}
+          ></StyledTextarea>
+        </RagePower>
       </div>
     </div>
   );

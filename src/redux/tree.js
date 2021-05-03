@@ -1,6 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { authService, db } from "../lib/firebase";
+import { demoTreeID } from "../lib/constants";
 
 const initialState = {
   treeID: "",
@@ -13,6 +14,7 @@ const initialState = {
   loading: false,
   error: null,
   isEditingTree: false,
+  treePublic: false,
 };
 
 const EDIT_TREE = "tree/EDIT_TREE";
@@ -47,7 +49,11 @@ export const finishEditTree = () => {
   return { type: FINISH_EDIT_TREE };
 };
 
-export const readTree = (userID, treeID) => async (dispatch) => {
+export const readTree = (userID, treeID, treeAuthorID) => async (
+  dispatch,
+  getState,
+  { history }
+) => {
   dispatch({ type: READ_TREE_TRY });
 
   try {
@@ -60,25 +66,87 @@ export const readTree = (userID, treeID) => async (dispatch) => {
     // const treeTitle = res.data.title
     // const treeAuthorID: res.data.author.firebaseUid,
     // const treeAuthorNickname: res.data.author.dispalyName
-    const treeDoc = await db
-      .collection("users")
-      .doc(userID)
-      .collection("trees")
-      .doc(treeID)
-      .get();
-    const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
-    const parsedLinkList = JSON.parse(treeDoc.data().linkList);
-    dispatch({
-      type: READ_TREE_SUCCESS,
-      nodeList: parsedNodeList,
-      linkList: parsedLinkList,
-      treeTitle: treeDoc.data().title,
-      treeAuthorID: treeDoc.data().treeAuthorID,
-      treeAuthorNickname: treeDoc.data().treeAuthorNickname,
-      treeID,
-    });
+    if (treeID !== demoTreeID) {
+      await db
+        .collectionGroup("trees")
+        .where("treeID", "==", treeID)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((treeDoc) => {
+            const user = authService.currentUser;
+            authService.onAuthStateChanged((user) => {
+              if (userID === treeAuthorID || treeDoc.data().treePublic) {
+                // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
+                const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
+                const parsedLinkList = JSON.parse(treeDoc.data().linkList);
+                dispatch({
+                  type: READ_TREE_SUCCESS,
+                  nodeList: parsedNodeList,
+                  linkList: parsedLinkList,
+                  treeTitle: treeDoc.data().title,
+                  treeAuthorID: treeDoc.data().treeAuthorID,
+                  treeAuthorNickname: treeDoc.data().treeAuthorNickname,
+                  treeID,
+                  treePublic: treeDoc.data().treePublic || false,
+                });
+              } else {
+                dispatch({ type: READ_TREE_FAIL, error: {} });
+                Swal.fire("It's not public tree!");
+                history.push("/");
+              }
+            });
+          });
+        });
+    } else {
+      await db
+        .collectionGroup("trees")
+        .where("treeID", "==", treeID)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((treeDoc) => {
+            const user = authService.currentUser;
+            authService.onAuthStateChanged((user) => {
+              // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
+              const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
+              const parsedLinkList = JSON.parse(treeDoc.data().linkList);
+              dispatch({
+                type: READ_TREE_SUCCESS,
+                nodeList: parsedNodeList,
+                linkList: parsedLinkList,
+                treeTitle: treeDoc.data().title,
+                treeAuthorID: treeDoc.data().treeAuthorID,
+                treeAuthorNickname: treeDoc.data().treeAuthorNickname,
+                treeID,
+                treePublic: treeDoc.data().treePublic || false,
+              });
+            });
+          });
+        });
+    }
   } catch (error) {
     dispatch({ type: READ_TREE_FAIL, error });
+  }
+};
+const UPDATE_TREE_PRIVACY_TRY = "tree/UPDATE_TREE_PRIVACY_TRY";
+const UPDATE_TREE_PRIVACY_SUCCESS = "tree/UPDATE_TREE_PRIVACY_SUCCESS";
+const UPDATE_TREE_PRIVACY_FAIL = "tree/UPDATE_TREE_PRIVACY_FAIL";
+export const updateTreePrivacy = (treeID, boolValue) => async (dispatch) => {
+  dispatch({ type: UPDATE_TREE_PRIVACY_TRY });
+  try {
+    if (treeID !== "homeDemo") {
+      const user = authService.currentUser;
+      const treeRef = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("trees")
+        .doc(treeID);
+      await treeRef.update({
+        treePublic: boolValue,
+      });
+    }
+    dispatch({ type: UPDATE_TREE_PRIVACY_SUCCESS, treePublic: boolValue });
+  } catch (e) {
+    dispatch({ type: UPDATE_TREE_PRIVACY_FAIL, error: e });
   }
 };
 
@@ -338,6 +406,12 @@ export const changeNodeColor = (nodeID, color) => {
 export default function tree(state = initialState, action) {
   const prevSelected = state.selectedNodeList;
   switch (action.type) {
+    case UPDATE_TREE_PRIVACY_TRY:
+      return { ...state, loading: true };
+    case UPDATE_TREE_PRIVACY_SUCCESS:
+      return { ...state, loading: false, treePublic: action.treePublic };
+    case UPDATE_TREE_PRIVACY_FAIL:
+      return { ...state, loading: false, error: action.error };
     case CHANGE_NODE_COLOR:
       const changed = state.nodeList.find((ele) => {
         return ele.id === action.nodeID;
@@ -410,6 +484,7 @@ export default function tree(state = initialState, action) {
         treeAuthorID: action.treeAuthorID,
         treeAuthorNickname: action.treeAuthorNickname,
         loading: false,
+        treePublic: action.treePublic,
       };
     case READ_TREE_FAIL:
       return {

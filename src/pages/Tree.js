@@ -35,11 +35,13 @@ import {
   createLink,
   deleteLink,
   cleanUp,
+  updateTreePrivacy,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
 import { authService } from "../lib/firebase";
 import { useHistory } from "react-router-dom";
+import { togglePowerMode } from "../redux/user";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
@@ -53,13 +55,24 @@ export const TreePage = React.memo(({ match }) => {
   const { nodeList, linkList } = useSelector((state) => {
     return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };
   });
+  const { treeAuthorID } = useSelector((state) => {
+    return { treeAuthorID: state.tree.treeAuthorID };
+  });
   const { treeTitle } = useSelector((state) => {
     return { treeTitle: state.tree.treeTitle };
+  });
+  const { treePublic } = useSelector((state) => {
+    return { treePublic: state.tree.treePublic };
   });
   const { isEditingTree, loading } = useSelector((state) => {
     return {
       isEditingTree: state.tree.isEditingTree,
       loading: state.tree.loading,
+    };
+  });
+  const { powerMode } = useSelector((state) => {
+    return {
+      powerMode: state.user.powerMode,
     };
   });
 
@@ -72,16 +85,17 @@ export const TreePage = React.memo(({ match }) => {
     };
   }, []);
   React.useEffect(() => {
-    if (treeID) {
-      authService.onAuthStateChanged((user) => {
-        if (user) {
-          dispatch(readTree(myID, treeID));
-        } else {
-          Swal.fire("Login Required!");
-          history.push("/login");
-        }
-      });
-    }
+    dispatch(readTree(myID, treeID, treeAuthorID));
+    //  if (treeID) {
+    //    authService.onAuthStateChanged((user) => {
+    //      if (user) {
+    //        dispatch(readTree(myID, treeID));
+    //      } else {
+    //        Swal.fire("Login Required!");
+    //        history.push("/login");
+    //      }
+    //    });
+    //  }
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (containerRef.current) {
@@ -119,6 +133,95 @@ export const TreePage = React.memo(({ match }) => {
       </TreeHeader>
 
       <TreeMap id="treeMap" ref={containerRef} />
+
+      <TreeFooter>
+        <div>
+          {/*
+        {powerMode ? (
+            <DefaultButton
+              onClick={() => {
+                dispatch(togglePowerMode());
+              }}
+            >
+              Now Power Mode On
+            </DefaultButton>
+          ) : (
+            <DefaultButton
+              onClick={() => {
+                dispatch(togglePowerMode());
+              }}
+            >
+              Now Power Mode Off
+            </DefaultButton>
+          )}
+        */}
+        </div>
+        <>
+          {treeAuthorID === myID ? (
+            <>
+              {" "}
+              {treePublic ? (
+                <div>
+                  This Tree Is Now{" "}
+                  <DefaultButton
+                    onClick={() => {
+                      Swal.fire({
+                        title: "Do you want to hide the tree?",
+                        //text: "You won't be able to revert this!",
+                        icon: "warning",
+                        confirmButtonColor: "#3085d6", // "#3085d6",
+                        confirmButtonText: "Yes, hide it!",
+                        showCancelButton: true,
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          dispatch(updateTreePrivacy(treeID, false));
+                          Swal.fire(
+                            "Done!",
+                            "Now other cannot see this tree.",
+                            "success"
+                          );
+                        }
+                      });
+                    }}
+                  >
+                    Published
+                  </DefaultButton>
+                </div>
+              ) : (
+                <div>
+                  This Tree Is Now{" "}
+                  <DefaultButton
+                    onClick={() => {
+                      Swal.fire({
+                        title: "Do you want to publish the tree?",
+                        //text: "You won't be able to revert this!",
+                        icon: "warning",
+                        confirmButtonColor: "#3085d6", // "#3085d6",
+
+                        confirmButtonText: "Yes, publish it!",
+                        showCancelButton: true,
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          dispatch(updateTreePrivacy(treeID, true));
+                          Swal.fire(
+                            "Published!",
+                            "Tree has been published.",
+                            "success"
+                          );
+                        }
+                      });
+                    }}
+                  >
+                    Private
+                  </DefaultButton>
+                </div>
+              )}
+            </>
+          ) : (
+            ""
+          )}
+        </>
+      </TreeFooter>
     </div>
   );
 });
@@ -161,6 +264,12 @@ export const TreeTitle = styled(LargeText)`
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+`;
+
+const TreeFooter = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin: 5px;
 `;
 
 const mapWidth = 1200;
@@ -713,7 +822,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         radius: nodeRadius,
         body: "New Document",
         hashtags: [],
-        fillColor: "#69bc69",
+        fillColor: "#51cf66",
         parentNodeID: [],
         childNodeID: [],
       };

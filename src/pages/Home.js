@@ -46,6 +46,7 @@ import Swal from "sweetalert2";
 import { uid } from "uid";
 import { authService } from "../lib/firebase";
 import { useHistory } from "react-router-dom";
+import { demoTreeID } from "../lib/constants";
 
 export const HomePage = () => {
   const loginCheck = localStorage.getItem("user");
@@ -167,7 +168,7 @@ const DemoTree = () => {
   const containerRef = React.useRef(null);
   const history = useHistory();
   const dispatch = useDispatch();
-  const treeID = "918a8f01c7b603db2de0a051";
+  const treeID = demoTreeID; //"918a8f01c7b603db2de0a051";
   const myID = "So1kSKj6UlUE3QBAXCvstos7Bu22";
   const { nodeList, linkList } = useSelector((state) => {
     return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };

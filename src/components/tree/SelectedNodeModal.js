@@ -3,12 +3,14 @@ import { MarkdownEditor } from "../MarkdownEditor";
 import { EditButton, XIcon, EditIcon, DoneIcon } from "../Buttons";
 import { LargeTextInput } from "../Inputs";
 import { LargeText } from "../Texts";
+import { BlockEditor } from "../BlockEditor";
 
 import React from "react";
 import styled from "styled-components";
 import { reduxStore } from "../../index";
 import { closeNode, updateDocu, changeNodeColor } from "../../redux/tree";
 import { colorPalette } from "../../lib/style";
+import _ from "lodash";
 //import { changeZIndex } from "../../lib/functions";
 
 export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
@@ -17,8 +19,27 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  React.useEffect(() => {
+    const modalID = `domInModal${node.id}`;
+    document.addEventListener("mousemove", function (e) {
+      // 이거 쓰로틀링을 주고 싶은데 lodash 쓰로틀링은 제대로 작동을 안하네
+      if (onDrag) {
+        const modal = document.getElementById(modalID);
+        const scrolledLeftLength = window.pageXOffset;
+        const scrolledTopLength = window.pageYOffset;
+        modal.style.left = e.clientX - relativeX + scrolledLeftLength + "px";
+        modal.style.top = e.clientY - relativeY + scrolledTopLength + "px";
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      onDrag = false;
+      relativeX = 0;
+      relativeY = 0;
+    });
+  }, [isEditing, title, text]);
+
   const modalID = `domInModal${node.id}`;
-  let onDrag = false;
+  let onDrag; // = false
   let relativeX;
   let relativeY;
 
@@ -45,9 +66,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
 
   function startDrag(e) {
     //modal.style.width = e.target.offsetWidth * 2 + "px";
-    const modal = document.getElementById(modalID);
-    if (!isEditing && e.target.tagName === "DIV") {
+    if (e.target.tagName === "DIV") {
       onDrag = true;
+
       relativeX = e.clientX - e.target.getBoundingClientRect().x;
       relativeY = e.clientY - e.target.getBoundingClientRect().y;
     }
@@ -89,96 +110,104 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       onMouseDown={(e) => {
         changeZIndex(e, node);
       }}
-      onMouseMove={isDragging}
+      //  onMouseMove={isDragging}
+      //onMouseUp={endDrag}
+      //onDrag={isDragging}
       id={modalID}
       className="nodeModal"
       style={{
         zIndex: defaultZ,
         top:
           window.pageYOffset +
-          document.getElementById("treeMap").getBoundingClientRect().y +
+          document.getElementsByClassName(node.id)[0].getBoundingClientRect()
+            .y +
+          30 +
           "px",
-        //30 +
-        //document.getElementById("treeMap").getBoundingClientRect().y +
-        //"px",
+        left:
+          window.pageXOffset +
+          document.getElementsByClassName(node.id)[0].getBoundingClientRect()
+            .x +
+          30 +
+          "px",
       }}
     >
-      {isEditing ? (
-        <DocuHeaderEdited onMouseMove={() => {}}>
-          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
-            <LargeTextInput
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-              }}
-              placeholder="title..."
-              maxLength={50}
-            />
-          </div>
-          <div>
-            <EditButton
-              onClick={() => {
-                if (isEditing) {
-                  finishDocuEdit();
-                }
-                setIsEditing(!isEditing);
-              }}
-            >
-              <DoneIcon />
-            </EditButton>
-            <EditButton
-              onClick={() => {
-                reduxStore.dispatch(closeNode(node));
-              }}
-            >
-              <XIcon />
-            </EditButton>
-          </div>
-        </DocuHeaderEdited>
-      ) : null}
-      {!isEditing ? (
-        <DocuHeader onMouseDown={startDrag} onMouseUp={endDrag}>
-          <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
-            <LargeText>{title}</LargeText>
-          </div>
-          <div>
-            <EditButton
-              onClick={() => {
-                if (isEditing) {
-                  finishDocuEdit();
-                }
-                setIsEditing(!isEditing);
-              }}
-            >
-              <EditIcon />
-            </EditButton>
-            <EditButton
-              onClick={() => {
-                reduxStore.dispatch(closeNode(node));
-              }}
-            >
-              <XIcon />
-            </EditButton>
-          </div>
-        </DocuHeader>
-      ) : null}
-
-      {isEditing ? (
-        <NodeColorButtonArea>
-          {colorList.map((color) => {
-            return (
-              <NodeColorButton
-                style={{ background: color }}
-                onClick={() => {
-                  setNodeColor(color);
-                  reduxStore.dispatch(changeNodeColor(node.id, color));
+      <DocuHeaderArea onMouseDown={startDrag}>
+        {isEditing ? (
+          <DocuHeaderEdited>
+            <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
+              <LargeTextInput
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
                 }}
-              ></NodeColorButton>
-            );
-          })}
-        </NodeColorButtonArea>
-      ) : null}
+                placeholder="title..."
+                maxLength={50}
+              />
+            </div>
+            <div>
+              <EditButton
+                onClick={() => {
+                  if (isEditing) {
+                    finishDocuEdit();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                <DoneIcon />
+              </EditButton>
+              <EditButton
+                onClick={() => {
+                  reduxStore.dispatch(closeNode(node));
+                }}
+              >
+                <XIcon />
+              </EditButton>
+            </div>
+          </DocuHeaderEdited>
+        ) : null}
+        {!isEditing ? (
+          <DocuHeader>
+            <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
+              <LargeText>{title}</LargeText>
+            </div>
+            <div>
+              <EditButton
+                onClick={() => {
+                  if (isEditing) {
+                    finishDocuEdit();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                <EditIcon />
+              </EditButton>
+              <EditButton
+                onClick={() => {
+                  reduxStore.dispatch(closeNode(node));
+                }}
+              >
+                <XIcon />
+              </EditButton>
+            </div>
+          </DocuHeader>
+        ) : null}
 
+        {isEditing ? (
+          <NodeColorButtonArea>
+            {colorList.map((color) => {
+              return (
+                <NodeColorButton
+                  style={{ background: color }}
+                  onClick={() => {
+                    setNodeColor(color);
+                    reduxStore.dispatch(changeNodeColor(node.id, color));
+                  }}
+                ></NodeColorButton>
+              );
+            })}
+          </NodeColorButtonArea>
+        ) : null}
+      </DocuHeaderArea>
       <DocuBodyArea>
         {isEditing ? (
           <MarkdownEditor bindingText={text} bindingSetter={setText} />
@@ -204,12 +233,22 @@ const ModalWrapper = styled.div`
   //z-index: 100;
   background-color: #ffffff;
   border: 1px solid ${colorPalette.gray3};
-  width: 700px;
-  height: 100vh;
+
+  width: 650px;
+
+  height: 90vh;
+  resize: both;
   overflow: scroll;
   @media (max-width: 768px) {
     width: 90vw;
   }
+`;
+
+const DocuHeaderArea = styled.div`
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
+  z-index: 1;
 `;
 
 const DocuHeader = styled.div`
@@ -225,12 +264,14 @@ const DocuHeader = styled.div`
 `;
 
 const DocuHeaderEdited = styled.div`
+  background-color: ${colorPalette.white0};
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 5px;
   padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
+  cursor: grab;
 `;
 
 const DocuBodyArea = styled.div`

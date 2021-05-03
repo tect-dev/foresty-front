@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@github/task-lists-element": "^2.0.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.8.3",
@@ -13,6 +14,7 @@
     "axios": "^0.21.1",
     "d3": "^5.6.0",
     "firebase": "^8.3.0",
+    "lodash": "^4.17.21",
     "prismjs": "^1.23.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -36,6 +38,7 @@
     "styled-component": "^2.8.0",
     "styled-components": "^5.2.1",
     "sweetalert2": "^10.15.5",
+    "textarea-caret": "^3.1.0",
     "throttle-debounce": "^3.0.1",
     "typescript": "^4.2.3",
     "uid": "^2.0.0",

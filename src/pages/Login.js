@@ -2,10 +2,11 @@ import MainIcon from "../assets/MainIcon.png";
 import { LargeTextInput } from "../components/Inputs";
 import { DefaultButton } from "../components/Buttons";
 import Loader from "react-loader-spinner";
+import { StyledTagBlock } from "../components/TagBlock";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login, signUp } from "../redux/user";
+import { login, signUp, sendSignUpVerificationEmail } from "../redux/user";
 import { boxShadow, colorPalette } from "../lib/style";
 import styled from "styled-components";
 import { useHistory } from "react-router";
@@ -19,11 +20,12 @@ export const LoginPage = React.memo(() => {
   const passwordRegex = /^(?=.*[a-zA-Z])((?=.*\d)|(?=.*\W)).{6,20}$/;
 
   const [isSignUp, setIsSignUp] = React.useState(false);
-  const { loading, error, myID } = useSelector((state) => {
+  const { loading, error, myID, verificationCode } = useSelector((state) => {
     return {
       loading: state.user.loading,
       error: state.user.error,
       myID: state.user.myID,
+      verificationCode: state.user.verificationCode,
     };
   });
 
@@ -41,6 +43,7 @@ export const LoginPage = React.memo(() => {
   const [password, setPassword] = React.useState("");
   const [checkPassword, setCheckPassword] = React.useState("");
   const [signUpCheck, setSignUpCheck] = React.useState(false);
+  const [verificationCheck, setVerificationCheck] = React.useState(false);
 
   return (
     <>
@@ -104,6 +107,38 @@ export const LoginPage = React.memo(() => {
               disabled={loading}
             />
           </div>
+
+          {/*
+          //이메일 인증 관련 코드
+           <div>
+            <FormInput
+              placeholder="email verification code"
+              onChange={(e) => {
+                if (e.target.value === verificationCode) {
+                  setVerificationCheck(true);
+                } else {
+                  setVerificationCheck(false);
+                }
+              }}
+            />
+          </div>
+          <ButtonArea>
+            {verificationCheck ? (
+              <StyledTagBlock style={{ backgroundColor: colorPalette.blue5 }}>
+                Verification OK!
+              </StyledTagBlock>
+            ) : (
+              <FormButton
+                onClick={() => {
+                  dispatch(sendSignUpVerificationEmail(email));
+                }}
+              >
+                Send email verification code
+              </FormButton>
+            )}
+          </ButtonArea>
+          */}
+
           <ButtonArea>
             {!loading ? (
               <FormButton

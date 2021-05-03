@@ -53,7 +53,7 @@ export const ForestPage = ({ match }) => {
             }}
             //style={{ background: colorPalette.red3 }}
           >
-            {isEdit ? "Doen" : "Edit"}
+            {isEdit ? "Done" : "Edit"}
           </DefaultButton>
         </div>
       </ForestHeader>
@@ -76,6 +76,11 @@ export const ForestPage = ({ match }) => {
                     }).then((result) => {
                       if (result.isConfirmed) {
                         dispatch(deleteTree(ele.treeID));
+                        Swal.fire(
+                          "Deleted!",
+                          "Tree has been deleted.",
+                          "success"
+                        );
                       }
                     });
                   }}
