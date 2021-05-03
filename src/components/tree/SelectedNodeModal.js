@@ -10,6 +10,7 @@ import styled from "styled-components";
 import { reduxStore } from "../../index";
 import { closeNode, updateDocu, changeNodeColor } from "../../redux/tree";
 import { colorPalette } from "../../lib/style";
+import _ from "lodash";
 //import { changeZIndex } from "../../lib/functions";
 
 export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
@@ -18,8 +19,27 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
   const [nodeColor, setNodeColor] = React.useState(node.fillColor);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  React.useEffect(() => {
+    const modalID = `domInModal${node.id}`;
+    document.addEventListener("mousemove", function (e) {
+      // 이거 쓰로틀링을 주고 싶은데 lodash 쓰로틀링은 제대로 작동을 안하네
+      if (onDrag) {
+        const modal = document.getElementById(modalID);
+        const scrolledLeftLength = window.pageXOffset;
+        const scrolledTopLength = window.pageYOffset;
+        modal.style.left = e.clientX - relativeX + scrolledLeftLength + "px";
+        modal.style.top = e.clientY - relativeY + scrolledTopLength + "px";
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      onDrag = false;
+      relativeX = 0;
+      relativeY = 0;
+    });
+  }, [isEditing]);
+
   const modalID = `domInModal${node.id}`;
-  let onDrag = false;
+  let onDrag; // = false
   let relativeX;
   let relativeY;
 
@@ -46,9 +66,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
 
   function startDrag(e) {
     //modal.style.width = e.target.offsetWidth * 2 + "px";
-    const modal = document.getElementById(modalID);
     if (e.target.tagName === "DIV") {
       onDrag = true;
+      console.log("드래그 시작");
       relativeX = e.clientX - e.target.getBoundingClientRect().x;
       relativeY = e.clientY - e.target.getBoundingClientRect().y;
     }
@@ -90,7 +110,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       onMouseDown={(e) => {
         changeZIndex(e, node);
       }}
-      onMouseMove={isDragging}
+      //  onMouseMove={isDragging}
+      //onMouseUp={endDrag}
+      //onDrag={isDragging}
       id={modalID}
       className="nodeModal"
       style={{
@@ -109,9 +131,9 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
           "px",
       }}
     >
-      <DocuHeaderArea>
+      <DocuHeaderArea onMouseDown={startDrag}>
         {isEditing ? (
-          <DocuHeaderEdited onMouseDown={startDrag} onMouseUp={endDrag}>
+          <DocuHeaderEdited>
             <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
               <LargeTextInput
                 value={title}
@@ -144,7 +166,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
           </DocuHeaderEdited>
         ) : null}
         {!isEditing ? (
-          <DocuHeader onMouseDown={startDrag} onMouseUp={endDrag}>
+          <DocuHeader>
             <div style={{ paddingLeft: "1rem", paddingTop: "10px" }}>
               <LargeText>{title}</LargeText>
             </div>

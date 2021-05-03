@@ -54,6 +54,9 @@ export const TreePage = React.memo(({ match }) => {
   const { nodeList, linkList } = useSelector((state) => {
     return { nodeList: state.tree.nodeList, linkList: state.tree.linkList };
   });
+  const { treeAuthorID } = useSelector((state) => {
+    return { treeAuthorID: state.tree.treeAuthorID };
+  });
   const { treeTitle } = useSelector((state) => {
     return { treeTitle: state.tree.treeTitle };
   });
@@ -99,90 +102,96 @@ export const TreePage = React.memo(({ match }) => {
   return (
     <div style={{ padding: "2rem" }}>
       <TreeHeader>
-        {treePublic ? (
-          <div>
-            this tree is{" "}
-            <button
-              onClick={() => {
-                Swal.fire({
-                  title: "Do you want to hide the tree?",
-                  //text: "You won't be able to revert this!",
-                  icon: "warning",
-                  confirmButtonColor: "#3085d6", // "#3085d6",
-                  confirmButtonText: "Yes, hide it!",
-                  showCancelButton: true,
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    dispatch(updateTreePrivacy(treeID, false));
-                    Swal.fire(
-                      "Done!",
-                      "Now Other cannot see this tree.",
-                      "success"
-                    );
-                  }
-                });
-              }}
-            >
-              published
-            </button>
-          </div>
+        {isEditingTree ? (
+          <LargeTextInput
+            value={treeTitle}
+            onChange={(e) => {
+              dispatch(changeTreeTitle(e.target.value));
+            }}
+            maxLength="100"
+          />
         ) : (
-          <div>
-            this tree is{" "}
-            <button
-              onClick={() => {
-                Swal.fire({
-                  title: "Do you want to publish the tree?",
-                  //text: "You won't be able to revert this!",
-                  icon: "warning",
-                  confirmButtonColor: "#3085d6", // "#3085d6",
-
-                  confirmButtonText: "Yes, publish it!",
-                  showCancelButton: true,
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    dispatch(updateTreePrivacy(treeID, true));
-                    Swal.fire(
-                      "Published!",
-                      "Tree has been published.",
-                      "success"
-                    );
-                  }
-                });
-              }}
-            >
-              private
-            </button>
-          </div>
+          <TreeTitle>{treeTitle}</TreeTitle>
         )}
 
-        <div>
-          {isEditingTree ? (
-            <LargeTextInput
-              value={treeTitle}
-              onChange={(e) => {
-                dispatch(changeTreeTitle(e.target.value));
-              }}
-              maxLength="100"
-            />
-          ) : (
-            <TreeTitle>{treeTitle}</TreeTitle>
-          )}
-
-          <div style={{ display: "flex" }}>
-            {!isEditingTree ? (
-              <EditButton id="treeEditButton">
-                <EditIcon />
-              </EditButton>
-            ) : null}
-            <EditButton id="treeSaveButton">
-              <DoneIcon />
+        <div style={{ display: "flex" }}>
+          {!isEditingTree ? (
+            <EditButton id="treeEditButton">
+              <EditIcon />
             </EditButton>
-          </div>
+          ) : null}
+          <EditButton id="treeSaveButton">
+            <DoneIcon />
+          </EditButton>
         </div>
       </TreeHeader>
 
       <TreeMap id="treeMap" ref={containerRef} />
+      <TreePolicy>
+        {treeAuthorID === myID ? (
+          <>
+            {" "}
+            {treePublic ? (
+              <div>
+                This Tree Is{" "}
+                <DefaultButton
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Do you want to hide the tree?",
+                      //text: "You won't be able to revert this!",
+                      icon: "warning",
+                      confirmButtonColor: "#3085d6", // "#3085d6",
+                      confirmButtonText: "Yes, hide it!",
+                      showCancelButton: true,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        dispatch(updateTreePrivacy(treeID, false));
+                        Swal.fire(
+                          "Done!",
+                          "Now other cannot see this tree.",
+                          "success"
+                        );
+                      }
+                    });
+                  }}
+                >
+                  Published
+                </DefaultButton>
+              </div>
+            ) : (
+              <div>
+                This Tree Is{" "}
+                <DefaultButton
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Do you want to publish the tree?",
+                      //text: "You won't be able to revert this!",
+                      icon: "warning",
+                      confirmButtonColor: "#3085d6", // "#3085d6",
+
+                      confirmButtonText: "Yes, publish it!",
+                      showCancelButton: true,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        dispatch(updateTreePrivacy(treeID, true));
+                        Swal.fire(
+                          "Published!",
+                          "Tree has been published.",
+                          "success"
+                        );
+                      }
+                    });
+                  }}
+                >
+                  Private
+                </DefaultButton>
+              </div>
+            )}
+          </>
+        ) : (
+          ""
+        )}
+      </TreePolicy>
     </div>
   );
 });
@@ -225,6 +234,12 @@ export const TreeTitle = styled(LargeText)`
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+`;
+
+const TreePolicy = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin: 5px;
 `;
 
 const mapWidth = 1200;
@@ -777,7 +792,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         radius: nodeRadius,
         body: "New Document",
         hashtags: [],
-        fillColor: "#69bc69",
+        fillColor: "#51cf66",
         parentNodeID: [],
         childNodeID: [],
       };

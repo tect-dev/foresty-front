@@ -12,6 +12,7 @@ const initialState = {
   myNickname: "",
   loginState: false,
   verificationCode: "",
+  powerMode: false,
 };
 
 const INIT_USER = "user/INIT_USER";
