@@ -41,7 +41,7 @@ const SEND_SIGNUP_VERIFICATION_EMAIL_FAIL =
   "user/SEND_SIGNUP_VERIFICATION_EMAIL_FAIL";
 export const sendSignUpVerificationEmail = (email) => async (dispatch) => {
   const uid4 = uid(4);
-  console.log(uid4);
+
   dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_TRY });
   try {
     //axios({method:"post",url:""})

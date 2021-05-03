@@ -19,7 +19,7 @@ export const BlockEditor = React.memo(() => {
                 class="task-list-item"
                 contentEditable
                 onChange={(e) => {
-                  console.log("value: ", e.target.value);
+                  //console.log("value: ", e.target.value);
                 }}
               >
                 {blockText}

@@ -68,7 +68,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
     //modal.style.width = e.target.offsetWidth * 2 + "px";
     if (e.target.tagName === "DIV") {
       onDrag = true;
-      console.log("드래그 시작");
+
       relativeX = e.clientX - e.target.getBoundingClientRect().x;
       relativeY = e.clientY - e.target.getBoundingClientRect().y;
     }

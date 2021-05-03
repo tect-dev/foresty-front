@@ -107,7 +107,10 @@ export const LoginPage = React.memo(() => {
               disabled={loading}
             />
           </div>
-          <div>
+
+          {/*
+          //이메일 인증 관련 코드
+           <div>
             <FormInput
               placeholder="email verification code"
               onChange={(e) => {
@@ -134,13 +137,15 @@ export const LoginPage = React.memo(() => {
               </FormButton>
             )}
           </ButtonArea>
+          */}
+
           <ButtonArea>
             {!loading ? (
               <FormButton
                 onClick={() => {
                   dispatch(signUp(email, password));
                 }}
-                disabled={!(signUpCheck && verificationCheck)}
+                disabled={!signUpCheck}
               >
                 SIGN UP
               </FormButton>
