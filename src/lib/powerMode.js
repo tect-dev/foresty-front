@@ -40,7 +40,7 @@ class RagePower extends React.Component {
     super(props, context);
     this._drawFrame = this._drawFrame.bind(this);
     this._onInput = this._onInput.bind(this);
-    //this._shake = _.throttle(this._shake.bind(this), 100, { trailing: false });
+    this._shake = _.throttle(this._shake.bind(this), 200, { trailing: false });
     this._spawnParticles = _.throttle(this._spawnParticles.bind(this), 25, {
       trailing: false,
     });
@@ -138,7 +138,7 @@ class RagePower extends React.Component {
   _createParticle(x, y, color) {
     return {
       x,
-      y: y,
+      y,
       alpha: 1,
       color,
       velocity: {
@@ -157,14 +157,21 @@ class RagePower extends React.Component {
   _onInput(...args) {
     const { onInput } = this.props;
     onInput && onInput(...args);
-    //this._shake();
+    if (reduxStore.getState().user.powerMode) {
+      this._shake();
+    }
     const target = args[0].target;
     const origin = target.getBoundingClientRect();
+    const scrolledLeftLength = window.pageXOffset;
+    const scrolledTopLength = window.pageYOffset;
     const { top, left } = getCaretCoordinates(target, target.selectionEnd);
     const charHeight = parseInt(getComputedStyle(target)["font-size"]);
     setTimeout(
       () =>
-        this._spawnParticles(left + origin.left, top + origin.top + charHeight),
+        this._spawnParticles(
+          left + origin.left,
+          scrolledTopLength + top + origin.top - charHeight
+        ),
       0
     );
   }

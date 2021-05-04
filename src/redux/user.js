@@ -88,6 +88,7 @@ export default function user(state = initialState, action) {
   switch (action.type) {
     case TOGGLE_POWER_MODE:
       return {
+        ...state,
         powerMode: !state.powerMode,
       };
     case SEND_SIGNUP_VERIFICATION_EMAIL_TRY:

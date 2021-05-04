@@ -287,6 +287,10 @@ export default React.memo(MarkdownEditor);
 
 const MarkdownToolkit = styled.div`
   margin-bottom: 10px;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
+  z-index: 1;
 `;
 const MarkdownButton = styled.button`
   border-radius: 3px;

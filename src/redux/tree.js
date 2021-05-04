@@ -75,8 +75,10 @@ export const readTree = (userID, treeID, treeAuthorID) => async (
           snapshot.forEach((treeDoc) => {
             const user = authService.currentUser;
             authService.onAuthStateChanged((user) => {
-              if (userID === treeAuthorID || treeDoc.data().treePublic) {
+              if (user || treeDoc.data().treePublic) {
                 // 여기서 public 인지 private 인지 체크하고, private 라면 currentUser 체크 하는 로직. currentUser의 ID값과 treeAuthorID 값이 같다면 redux 상태를 변경하고 아니면 swal.fire 경고 띄운뒤 메인화면으로 back.
+
+                // 새로고침을 하면 userID 전달이 안되니까 먼저 튕겨버리고 마는구나... 이걸 어케 해결하지
                 const parsedNodeList = JSON.parse(treeDoc.data().nodeList);
                 const parsedLinkList = JSON.parse(treeDoc.data().linkList);
                 dispatch({

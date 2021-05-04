@@ -136,8 +136,7 @@ export const TreePage = React.memo(({ match }) => {
 
       <TreeFooter>
         <div>
-          {/*
-        {powerMode ? (
+          {powerMode ? (
             <DefaultButton
               onClick={() => {
                 dispatch(togglePowerMode());
@@ -154,7 +153,6 @@ export const TreePage = React.memo(({ match }) => {
               Now Power Mode Off
             </DefaultButton>
           )}
-        */}
         </div>
         <>
           {treeAuthorID === myID ? (
@@ -279,6 +277,12 @@ const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
 export function initMap(container) {
+  var touchEvents = ["touchstart", "touchmove", "touchend"];
+  touchEvents.forEach(function (eventName) {
+    document.body.addEventListener(eventName, function (e) {
+      e.preventDefault();
+    });
+  });
   const svg = d3
     .select(container)
     .append("svg")
@@ -501,7 +505,17 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       .attr("class", (d) => {
         return d.id;
       })
+      .attr('z-index',(d)=>{
+        if(d.type==="folder"){
+          return 0
+        } else {
+          return 1
+        }
+      })
       .style("stroke", (node) => {
+        if(node.type==="folder"){
+          return "#51cf66"
+        }
         if (
           reduxStore.getState().tree.selectedNodeList.find((ele) => {
             return node.id === ele.id;
@@ -514,6 +528,9 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       })
       .style("stroke-width", selectedNodeStrokeWidth)
       .on("click", (node) => {
+        if(node.type==="folder"){
+          return;
+        }
         if (
           reduxStore.getState().tree.selectedNodeList.find((ele) => {
             return ele.id === node.id;
@@ -808,30 +825,184 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       .style("text-shadow", "1px 1px 1px #ffffff");
   }
 
-  svg.on("dblclick", async () => {
-    if (true) {
-      //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
-      const offsetElement = document.getElementById("treeContainer");
-      const clientRect = offsetElement.getBoundingClientRect();
-      const ratioFactor = width / clientRect.width;
-      const createdNode = {
-        id: `node${uid(20)}`,
-        name: "New Node",
-        x: d3.event.offsetX * ratioFactor,
-        y: d3.event.offsetY * ratioFactor,
-        radius: nodeRadius,
-        body: "New Document",
-        hashtags: [],
-        fillColor: "#51cf66",
-        parentNodeID: [],
-        childNodeID: [],
-      };
-      nodeList = [...nodeList, createdNode];
-      await reduxStore.dispatch(createNode(treeID, nodeList));
-      changeTreeInfo();
-      initNode();
+  svg
+    .on("dblclick", async () => {
+      if (true) {
+        //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
+        const offsetElement = document.getElementById("treeContainer");
+        const clientRect = offsetElement.getBoundingClientRect();
+        const ratioFactor = width / clientRect.width;
+        const createdNode = {
+          id: `node${uid(20)}`,
+          name: "New Node",
+          x: d3.event.offsetX * ratioFactor,
+          y: d3.event.offsetY * ratioFactor,
+          radius: nodeRadius,
+          body: "New Document",
+          hashtags: [],
+          fillColor: "#51cf66",
+          parentNodeID: [],
+          childNodeID: [],
+        };
+        nodeList = [...nodeList, createdNode];
+        await reduxStore.dispatch(createNode(treeID, nodeList));
+        changeTreeInfo();
+        initNode();
+      }
+    })
+    .call(
+      d3
+        .drag()
+        .container(function () {
+          return this;
+        })
+        .subject(function () {
+          var p = [d3.event.x, d3.event.y];
+          return [p, p];
+        })
+        .on("start", dragstarted)
+        .on("end", dragend)
+    );
+  var line = d3.line().curve(d3.curveBasis);
+  function dragend() {
+ 
+    const tempDrawing = document.getElementById("temp-drawing");
+    
+    const pathLength = tempDrawing.getTotalLength();
+
+    const endPoint = tempDrawing.getPointAtLength(pathLength);
+    // 엔드포인트가 음수좌표를 포함하면 아무일도 안 일어나게끔.
+    if (endPoint.x < 0 || endPoint.y < 0) {
+      tempDrawing.remove();
+      return;
     }
-  });
+
+    const pathPoints = [];
+    for (let i = 0; i < pathLength; i++) {
+      pathPoints.push(tempDrawing.getPointAtLength(i));
+    }
+
+    
+    
+    const startPoint = tempDrawing.getPointAtLength(0);
+    
+     svg
+      .append("line")
+      .attr("x1", endPoint.x)
+      .attr("y1", endPoint.y)
+      .attr("x2", startPoint.x)
+      .attr("y2", startPoint.y)
+      .attr("id", "inter-line")
+      const interpolation = document.getElementById("inter-line");
+      const interLength = interpolation.getTotalLength()
+      for (let i = 0; i < interLength; i++) {
+      pathPoints.push(interpolation.getPointAtLength(i));
+    }
+    
+
+    // 엔드포인트에서 스타트포인트까지의 점들 구해서 집어넣기
+    const nodesInCircle = []
+    nodeList.map((node) => {
+      const candidate1 = []
+      const candidate2 = []
+      for (let i=0; i< pathPoints.length-2;i++){
+      
+       if(pathPoints[i].x<node.x && pathPoints[i+1].x>node.x){
+         // 후보군에 추가
+         candidate1.push(pathPoints[i])
+         candidate1.push(pathPoints[i+1])
+       }
+       else if (pathPoints[i].x>node.x && pathPoints[i+1].x<node.x){
+         // 위랑 아래중 하나는 업, 하나는 다운. 
+         candidate2.push(pathPoints[i])
+         candidate2.push(pathPoints[i+1])
+       }else{}
+}
+// 둘다 내부에 원소가 있는경우
+if(candidate1.length>1 && candidate2.length>1){
+ if(candidate1[0].y>node.y && candidate2[0].y<node.y){
+   nodesInCircle.push(node)
+ }
+ else if(candidate1[0].y<node.y && candidate2[0].y>node.y){
+   nodesInCircle.push(node)
+ }else {}
+}
+    });
+
+    // 다 쓴 라인은 지워버린다.
+    tempDrawing.remove();
+    interpolation.remove();
+    
+    // 해당되는 노드가 없으면 종료
+    if(nodesInCircle.length<1){
+      return;
+    }
+    //
+    let sumX=0;
+    let sumY=0;
+    nodesInCircle.map((node)=>{
+      sumX=sumX+node.x
+      sumY=sumY+node.y
+    })
+    
+    const avgX= sumX/nodesInCircle.length
+    const avgY= sumY/nodesInCircle.length
+
+    // 중심지에서 가장 먼 노드를 기준으로 반경을 결정하자
+    let bigRadius = 0;
+    nodesInCircle.map((node)=>{
+     if((node.x- avgX)*(node.x- avgX)+(node.y-avgY)*(node.y-avgY)>bigRadius) {
+       bigRadius =(node.x- avgX)*(node.x- avgX)+(node.y-avgY)*(node.y-avgY)
+     }
+    })
+    bigRadius = Math.sqrt(bigRadius)+nodeRadius*1.5
+
+    
+    const createdNode = {
+      id: `node${uid(20)}`,
+type: "folder",
+      name: "",
+      x: avgX,
+      y: avgY,
+      radius: bigRadius,
+      body: "",
+      hashtags: [],
+      fillColor: "none",//"#51cf66",
+      parentNodeID: [],
+      childNodeID: nodesInCircle,
+    };
+    nodeList = [...nodeList, createdNode];
+
+    ////await reduxStore.dispatch(createNode(treeID, nodeList));
+    ////changeTreeInfo();
+
+    initNode();
+    
+  }
+  function dragstarted() {
+    var d = d3.event.subject,
+      active = svg
+        .append("path")
+        .datum(d)
+        .attr("id", "temp-drawing")
+        .style("fill", "none")
+        .style("stroke", "#000")
+        .style("stroke-width", "3px")
+        .style("stroke-linejoin", "round"),
+      x0 = d3.event.x,
+      y0 = d3.event.y;
+
+    d3.event.on("drag", function () {
+      var x1 = d3.event.x,
+        y1 = d3.event.y,
+        dx = x1 - x0,
+        dy = y1 - y0;
+
+      if (dx * dx + dy * dy > 100) d.push([(x0 = x1), (y0 = y1)]);
+      else d[d.length - 1] = [x1, y1];
+      active.attr("d", line);
+    });
+  }
 
   reduxStore.subscribe(initNode);
   initLink();
