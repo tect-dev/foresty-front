@@ -22,7 +22,7 @@ export const togglePowerMode = () => {
 
 const INIT_USER = "user/INIT_USER";
 export const authCheck = (user) => {
-  localStorage.setItem("user", JSON.stringify(user));
+  localStorage.setItem("user", JSON.stringify(user.uid));
   return { type: INIT_USER, user };
 };
 

@@ -105,6 +105,16 @@ export const TreePage = React.memo(({ match }) => {
 
   //const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
 
+  const [dataStr, setDataStr] = React.useState({});
+  React.useEffect(() => {
+    // 노드리스트를 순회하면서 각각의 title,body 를 추출하고 그걸 통짜 텍스트로.
+    let fullText = "---\ntopic\n" + treeTitle + "\n---";
+    nodeList.map((node) => {
+      fullText = fullText + `\n\n---\ntitle\n${node.name}\n\n${node.body}\n---`;
+    });
+    setDataStr("data:text/json;charset=utf-8," + encodeURIComponent(fullText));
+  }, [nodeList, linkList, treeTitle]);
+
   return (
     <div style={{ padding: "2rem" }}>
       <TreeHeader>
@@ -135,14 +145,21 @@ export const TreePage = React.memo(({ match }) => {
       <TreeMap id="treeMap" ref={containerRef} />
 
       <TreeFooter>
-        <div>
+        <>
+          <a href={dataStr} download={`${treeTitle}.md`}>
+            <DefaultButton>Download Tree Data as a markdown.md</DefaultButton>
+          </a>
+        </>
+        {/* 
+       power mode. position bug?
+         <div>
           {powerMode ? (
             <DefaultButton
               onClick={() => {
                 dispatch(togglePowerMode());
               }}
             >
-              Now Power Mode On
+              Now Editor Power Mode On
             </DefaultButton>
           ) : (
             <DefaultButton
@@ -150,10 +167,12 @@ export const TreePage = React.memo(({ match }) => {
                 dispatch(togglePowerMode());
               }}
             >
-              Now Power Mode Off
+              Now Editor Power Mode Off
             </DefaultButton>
           )}
         </div>
+       
+       tree private feature. now error.
         <>
           {treeAuthorID === myID ? (
             <>
@@ -219,6 +238,7 @@ export const TreePage = React.memo(({ match }) => {
             ""
           )}
         </>
+        */}
       </TreeFooter>
     </div>
   );
@@ -277,12 +297,12 @@ const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
 export function initMap(container) {
-  var touchEvents = ["touchstart", "touchmove", "touchend"];
-  touchEvents.forEach(function (eventName) {
-    document.body.addEventListener(eventName, function (e) {
-      e.preventDefault();
-    });
-  });
+  //var touchEvents = ["touchstart", "touchmove", "touchend"];
+  //touchEvents.forEach(function (eventName) {
+  //  document.body.addEventListener(eventName, function (e) {
+  //    e.preventDefault();
+  //  });
+  //});
   const svg = d3
     .select(container)
     .append("svg")
@@ -331,6 +351,7 @@ export function initMap(container) {
   svg.append("g").attr("class", "links");
   svg.append("g").attr("class", "nodes");
   svg.append("g").attr("class", "labels");
+  svg.append("g").attr("class", "folders");
 }
 
 export function initGraph(container, originalNodeList, originalLinkList) {
@@ -338,6 +359,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   const height = mapHeight || 700;
   let nodeList = originalNodeList;
   let linkList = originalLinkList;
+  let folderList = [];
 
   const selectedColor = "#00bebe"; //colorPalette.green2;
   const selectedNodeStrokeWidth = "8px";
@@ -361,6 +383,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   const svg = d3.select(container).select("svg");
   const linkGroup = svg.select(".links");
   const nodeGroup = svg.select(".nodes");
+  const folderGroup = svg.select(".folders");
   const labelGroup = svg.select(".labels");
 
   const treeEditButton = d3.select("#treeEditButton").on("click", () => {
@@ -505,16 +528,16 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       .attr("class", (d) => {
         return d.id;
       })
-      .attr('z-index',(d)=>{
-        if(d.type==="folder"){
-          return 0
+      .style("z-index", (d) => {
+        if (d.type === "folder") {
+          return "-1";
         } else {
-          return 1
+          return "1";
         }
       })
       .style("stroke", (node) => {
-        if(node.type==="folder"){
-          return "#51cf66"
+        if (node.type === "folder") {
+          return colorPalette.gray3;
         }
         if (
           reduxStore.getState().tree.selectedNodeList.find((ele) => {
@@ -528,7 +551,8 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       })
       .style("stroke-width", selectedNodeStrokeWidth)
       .on("click", (node) => {
-        if(node.type==="folder"){
+        if (node.type === "folder") {
+          nodeList.reverse();
           return;
         }
         if (
@@ -564,7 +588,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         .call(
           d3
             .drag()
-            .on("start", (d) => {
+            .on("start", (node) => {
               d3.select(this).raise().classed("active", true);
             })
             .on("drag", (node) => {
@@ -624,6 +648,9 @@ export function initGraph(container, originalNodeList, originalLinkList) {
           d3
             .drag()
             .on("start", (d) => {
+              if (d.type === "folder") {
+                return;
+              }
               if (
                 true // treeAuthor?.firebaseUid === reduxStore.getState().auth.userID
               ) {
@@ -799,6 +826,251 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       })
       .style("cursor", "pointer");
   }
+
+  function initFolder() {
+    const createdFolderGroup = folderGroup
+      .selectAll("circle")
+      .data(folderList)
+      .join("circle")
+      .attr("r", (folder) => {
+        if (folder.folded) {
+          return folder.foldedRadius;
+        } else {
+          return folder.radius;
+        }
+      })
+      .style("fill", (d) => d.fillColor)
+      .attr("cx", (d) => {
+        return d.x;
+      })
+      .attr("cy", (d) => {
+        return d.y;
+      })
+      .attr("class", (d) => {
+        return d.id;
+      })
+      .style("stroke", (folder) => {
+        return colorPalette.gray3;
+      })
+      .on("click", (folder) => {
+        folderList = folderList.filter((ele) => {
+          return ele.id !== folder.id;
+        });
+        folderList.push({ ...folder, folded: !folder.folded });
+        initFolder();
+      })
+      .style("cursor", "pointer");
+
+    if (reduxStore.getState().tree.isEditingTree) {
+      // drag node
+      createdFolderGroup
+        .call(
+          d3
+            .drag()
+            .on("start", (node) => {
+              d3.select(this).raise().classed("active", true);
+            })
+            .on("drag", (node) => {
+              const newLinkList = linkList.map((link) => {
+                if (link.startNodeID === node.id) {
+                  return { ...link, startX: d3.event.x, startY: d3.event.y };
+                } else if (link.endNodeID === node.id) {
+                  return { ...link, endX: d3.event.x, endY: d3.event.y };
+                } else {
+                  return link;
+                }
+              });
+              linkList = newLinkList;
+              initLink();
+              d3.select(this).attr("cx", d3.event.x).attr("cy", d3.event.y);
+              node.x = d3.event.x;
+              node.y = d3.event.y;
+              initNode();
+              initLabel();
+            })
+            .on("end", async (node) => {
+              d3.select(this).classed("active", false);
+              node.x = d3.event.x;
+              node.y = d3.event.y;
+
+              await reduxStore.dispatch(createLink(treeID, linkList));
+              await reduxStore.dispatch(createNode(treeID, nodeList));
+              changeTreeInfo();
+            })
+        )
+        .attr("cx", (d) => {
+          return d.x;
+        });
+    } else {
+      // connect nodes by link
+      createdFolderGroup
+        .call(
+          d3
+            .drag()
+            .on("start", (d) => {
+              if (d.type === "folder") {
+                return;
+              }
+              if (
+                true // treeAuthor?.firebaseUid === reduxStore.getState().auth.userID
+              ) {
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x1", d.x)
+                  .attr("y1", d.y);
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x2", d3.event.x)
+                  .attr("y2", d3.event.y);
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .style("opacity", "1")
+                  .attr("display", "inline");
+                tempPairingNodes.startNodeID = d.id;
+                tempPairingNodes.startX = d.x;
+                tempPairingNodes.startY = d.y;
+              }
+            })
+            .on("drag", (node) => {
+              if (
+                d3.select(".tempLine").attr("x1") > 1 &&
+                d3.select(".tempLine").attr("y1") > 1 &&
+                d3.select(".tempLine").style("opacity") != 0
+              ) {
+                svg
+                  .select("g")
+                  .select(".tempLine")
+                  .attr("x2", d3.event.x)
+                  .attr("y2", d3.event.y);
+                initLink();
+                initNode();
+                initLabel();
+              }
+            })
+            .on("end", async (startNode) => {
+              const pointerX = d3.event.x;
+              const pointerY = d3.event.y;
+              nodeList.map(async (node) => {
+                if (
+                  (node.x - pointerX) * (node.x - pointerX) +
+                    (node.y - pointerY) * (node.y - pointerY) <
+                  nodeRadius * nodeRadius
+                ) {
+                  tempPairingNodes.endNodeID = node.id;
+                  tempPairingNodes.endX = node.x;
+                  tempPairingNodes.endY = node.y;
+
+                  // 연결된 노드를 데이터에 반영
+                  if (
+                    tempPairingNodes.startNodeID !==
+                      tempPairingNodes.endNodeID &&
+                    tempPairingNodes.startX !== tempPairingNodes.endX &&
+                    tempPairingNodes.startY !== tempPairingNodes.endY &&
+                    !linkList.find(
+                      (element) =>
+                        element.startNodeID === tempPairingNodes.startNodeID &&
+                        element.endNodeID === tempPairingNodes.endNodeID
+                    ) &&
+                    d3.select(".tempLine").attr("x1") > 1 &&
+                    d3.select(".tempLine").attr("y1") > 1 &&
+                    d3.select(".tempLine").style("opacity") != 0
+                  ) {
+                    tempPairingNodes.id = `link${uid(20)}`;
+                    linkList.push({ ...tempPairingNodes });
+
+                    await reduxStore.dispatch(createLink(treeID, linkList));
+                    await initLink();
+                    changeTreeInfo();
+                    svg.select(".tempLine").style("opacity", "0");
+                  }
+                  svg
+                    .select("g")
+                    .select(".tempLine")
+                    .attr("x1", 0)
+                    .attr("y1", 0)
+                    .attr("x2", 0)
+                    .attr("y2", 0);
+                  tempPairingNodes = {};
+                }
+              });
+              svg.select("g").select(".tempLine").attr("x1", 0).attr("y1", 0);
+              svg.select(".tempLine").style("opacity", "0");
+            })
+        )
+        .style("stroke-width", 0)
+        .transition()
+        .duration(500)
+        .ease(d3.easeLinear)
+        .style("stroke-width", selectedNodeStrokeWidth);
+    }
+
+    // 노드 삭제용 버튼 만들기
+    folderGroup
+      .selectAll("image")
+      .data(folderList)
+      .join("image")
+      .attr("href", xCircle)
+      .attr("width", deleteButtonLength)
+      .attr("height", deleteButtonLength)
+      .style("fill", (d) => d.fillColor)
+      .attr("x", (d) => {
+        return d.x - d.radius * 1.7;
+      })
+      .attr("y", (d) => {
+        return d.y - d.radius * 1.7;
+      })
+      .attr("class", (d) => {
+        return d.id;
+      })
+      .attr("display", () => {
+        if (reduxStore.getState().tree.isEditingTree) {
+          return "inline";
+        } else {
+          return "none";
+        }
+      })
+      .on("click", async (d) => {
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Node has been deleted.", "success");
+            reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
+            initNode();
+            changeTreeInfo();
+          }
+        });
+      })
+      .on("touch", async (d) => {
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#999",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Deleted!", "Node has been deleted.", "success");
+            reduxStore.dispatch(deleteNode(treeID, nodeList, linkList, d));
+            initNode();
+            changeTreeInfo();
+          }
+        });
+      })
+      .style("cursor", "pointer");
+  }
+
   function initLabel() {
     labelGroup.selectAll("*").remove();
     labelGroup
@@ -826,7 +1098,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   }
 
   svg
-    .on("dblclick", async () => {
+    .on("dblclick", async (d) => {
       if (true) {
         //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
         const offsetElement = document.getElementById("treeContainer");
@@ -865,11 +1137,13 @@ export function initGraph(container, originalNodeList, originalLinkList) {
     );
   var line = d3.line().curve(d3.curveBasis);
   function dragend() {
- 
     const tempDrawing = document.getElementById("temp-drawing");
-    
-    const pathLength = tempDrawing.getTotalLength();
 
+    const pathLength = tempDrawing.getTotalLength();
+    if (!pathLength) {
+      tempDrawing.remove();
+      return;
+    }
     const endPoint = tempDrawing.getPointAtLength(pathLength);
     // 엔드포인트가 음수좌표를 포함하면 아무일도 안 일어나게끔.
     if (endPoint.x < 0 || endPoint.y < 0) {
@@ -882,102 +1156,111 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       pathPoints.push(tempDrawing.getPointAtLength(i));
     }
 
-    
-    
     const startPoint = tempDrawing.getPointAtLength(0);
-    
-     svg
+
+    svg
       .append("line")
       .attr("x1", endPoint.x)
       .attr("y1", endPoint.y)
       .attr("x2", startPoint.x)
       .attr("y2", startPoint.y)
-      .attr("id", "inter-line")
-      const interpolation = document.getElementById("inter-line");
-      const interLength = interpolation.getTotalLength()
-      for (let i = 0; i < interLength; i++) {
+      .attr("id", "inter-line");
+    const interpolation = document.getElementById("inter-line");
+    const interLength = interpolation.getTotalLength();
+    for (let i = 0; i < interLength; i++) {
       pathPoints.push(interpolation.getPointAtLength(i));
     }
-    
 
     // 엔드포인트에서 스타트포인트까지의 점들 구해서 집어넣기
-    const nodesInCircle = []
+    const nodesInCircle = [];
     nodeList.map((node) => {
-      const candidate1 = []
-      const candidate2 = []
-      for (let i=0; i< pathPoints.length-2;i++){
-      
-       if(pathPoints[i].x<node.x && pathPoints[i+1].x>node.x){
-         // 후보군에 추가
-         candidate1.push(pathPoints[i])
-         candidate1.push(pathPoints[i+1])
-       }
-       else if (pathPoints[i].x>node.x && pathPoints[i+1].x<node.x){
-         // 위랑 아래중 하나는 업, 하나는 다운. 
-         candidate2.push(pathPoints[i])
-         candidate2.push(pathPoints[i+1])
-       }else{}
-}
-// 둘다 내부에 원소가 있는경우
-if(candidate1.length>1 && candidate2.length>1){
- if(candidate1[0].y>node.y && candidate2[0].y<node.y){
-   nodesInCircle.push(node)
- }
- else if(candidate1[0].y<node.y && candidate2[0].y>node.y){
-   nodesInCircle.push(node)
- }else {}
-}
+      const candidate1 = [];
+      const candidate2 = [];
+      for (let i = 0; i < pathPoints.length - 2; i++) {
+        if (pathPoints[i].x < node.x && pathPoints[i + 1].x > node.x) {
+          // 후보군에 추가
+          candidate1.push(pathPoints[i]);
+          candidate1.push(pathPoints[i + 1]);
+        } else if (pathPoints[i].x > node.x && pathPoints[i + 1].x < node.x) {
+          // 위랑 아래중 하나는 업, 하나는 다운.
+          candidate2.push(pathPoints[i]);
+          candidate2.push(pathPoints[i + 1]);
+        } else {
+        }
+      }
+      // 둘다 내부에 원소가 있는경우
+      if (candidate1.length > 1 && candidate2.length > 1) {
+        if (candidate1[0].y > node.y && candidate2[0].y < node.y) {
+          nodesInCircle.push(node);
+        } else if (candidate1[0].y < node.y && candidate2[0].y > node.y) {
+          nodesInCircle.push(node);
+        } else {
+        }
+      }
     });
 
+    const folderID = `node${uid(20)}`;
+    nodesInCircle.map((incircle) => {
+      nodeList = nodeList.filter((eachNode) => {
+        return incircle.id !== eachNode.id;
+      });
+      const added = { ...incircle, parentNodeID: [folderID] };
+      nodeList.push(added);
+    });
     // 다 쓴 라인은 지워버린다.
     tempDrawing.remove();
     interpolation.remove();
-    
+
     // 해당되는 노드가 없으면 종료
-    if(nodesInCircle.length<1){
+    if (nodesInCircle.length < 1) {
       return;
     }
     //
-    let sumX=0;
-    let sumY=0;
-    nodesInCircle.map((node)=>{
-      sumX=sumX+node.x
-      sumY=sumY+node.y
-    })
-    
-    const avgX= sumX/nodesInCircle.length
-    const avgY= sumY/nodesInCircle.length
+    let sumX = 0;
+    let sumY = 0;
+    nodesInCircle.map((node) => {
+      sumX = sumX + node.x;
+      sumY = sumY + node.y;
+    });
+
+    const avgX = sumX / nodesInCircle.length;
+    const avgY = sumY / nodesInCircle.length;
 
     // 중심지에서 가장 먼 노드를 기준으로 반경을 결정하자
     let bigRadius = 0;
-    nodesInCircle.map((node)=>{
-     if((node.x- avgX)*(node.x- avgX)+(node.y-avgY)*(node.y-avgY)>bigRadius) {
-       bigRadius =(node.x- avgX)*(node.x- avgX)+(node.y-avgY)*(node.y-avgY)
-     }
-    })
-    bigRadius = Math.sqrt(bigRadius)+nodeRadius*1.5
+    nodesInCircle.map((node) => {
+      if (
+        (node.x - avgX) * (node.x - avgX) + (node.y - avgY) * (node.y - avgY) >
+        bigRadius
+      ) {
+        bigRadius =
+          (node.x - avgX) * (node.x - avgX) + (node.y - avgY) * (node.y - avgY);
+      }
+    });
+    bigRadius = Math.sqrt(bigRadius) + nodeRadius * 1.5;
 
-    
-    const createdNode = {
-      id: `node${uid(20)}`,
-type: "folder",
+    const createdFolder = {
+      id: folderID,
+      type: "folder",
       name: "",
       x: avgX,
       y: avgY,
       radius: bigRadius,
+      foldedRadius: nodeRadius,
+      folded: false,
       body: "",
       hashtags: [],
-      fillColor: "none",//"#51cf66",
+      fillColor: colorPalette.gray0, //"none", //colorPalette.gray0,//"#51cf66",
       parentNodeID: [],
       childNodeID: nodesInCircle,
     };
-    nodeList = [...nodeList, createdNode];
-
+    folderList.push(createdFolder);
     ////await reduxStore.dispatch(createNode(treeID, nodeList));
     ////changeTreeInfo();
 
-    initNode();
-    
+    initFolder();
+
+    //initNode();
   }
   function dragstarted() {
     var d = d3.event.subject,
@@ -988,7 +1271,8 @@ type: "folder",
         .style("fill", "none")
         .style("stroke", "#000")
         .style("stroke-width", "3px")
-        .style("stroke-linejoin", "round"),
+        .style("stroke-linejoin", "round")
+        .style("stroke-dasharray", "10,10"),
       x0 = d3.event.x,
       y0 = d3.event.y;
 

@@ -33,7 +33,7 @@ const MarkdownStyledBlock = styled.div`
   p {
     margin-top: 1rem;
     margin-bottom: 1rem;
-    text-indent: 0.5rem;
+    // text-indent: 0.5rem;
   }
   h1,
   h2,

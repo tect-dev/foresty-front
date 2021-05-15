@@ -18,7 +18,8 @@ export const Nav = React.memo(() => {
   const { forestLoading } = useSelector((state) => {
     return { forestLoading: state.forest.loading };
   });
-  const loginCheck = localStorage.getItem("user");
+  const loginCheck = JSON.parse(localStorage.getItem("user"));
+
   const dispatch = useDispatch();
   const history = useHistory();
   return (
@@ -41,7 +42,11 @@ export const Nav = React.memo(() => {
             </Link>
           </div>
           <MyForest>
-            {loginCheck ? <Link to={`/forest/${myID}`}>My Forest</Link> : ""}
+            {loginCheck ? (
+              <Link to={`/forest/${loginCheck}`}>My Note</Link>
+            ) : (
+              ""
+            )}
           </MyForest>
           {treeLoading || forestLoading ? (
             <div

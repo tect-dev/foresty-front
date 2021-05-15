@@ -107,13 +107,13 @@ export const HomePage = () => {
         <br />
         <br />
         <XLargeText>
-          Join beta program and get a forever access
+          Join the beta and get a forever access
           <br />
           (all of Foresty's services are available for a life)
         </XLargeText>
         <br />
         <br />
-        <LargeText> No credit card required</LargeText>
+        {/*<LargeText> No credit card required</LargeText>*/}
         <div>
           <DefaultButton>
             {!loginCheck ? (
