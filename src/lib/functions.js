@@ -1,5 +1,31 @@
 import sanitize from "sanitize-html";
 
+export function returnPreviousNodeList(someLinkList, someNodeList, someNode) {
+  let previousNodeList = [];
+  someLinkList.map((linkElement) => {
+    if (someNode.id === linkElement.endNodeID) {
+      const previousNode = someNodeList.find((node) => {
+        return node.id === linkElement.startNodeID;
+      });
+      previousNodeList.push(previousNode);
+    }
+  });
+  return previousNodeList;
+}
+
+export function returnNextNodeList(someLinkList, someNodeList, someNode) {
+  let nextNodeList = [];
+  someLinkList.map((linkElement) => {
+    if (someNode.id === linkElement.startNodeID) {
+      const nextNode = someNodeList.find((node) => {
+        return node.id === linkElement.endNodeID;
+      });
+      nextNodeList.push(nextNode);
+    }
+  });
+  return nextNodeList;
+}
+
 export function changeZIndex(e, node) {
   if (e.target) {
     const modalList = document.getElementsByClassName("nodeModal");

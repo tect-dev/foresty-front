@@ -19,9 +19,10 @@ import {
   returnLinkList,
   returnSelectedList,
 } from "../lib/testCode";
-import { colorPalette, boxShadow } from "../lib/style";
+import { colorPalette, boxShadow, hoverAction } from "../lib/style";
 import { reduxStore } from "../index";
 import { useSelector, useDispatch } from "react-redux";
+import { returnPreviousNodeList, returnNextNodeList } from "../lib/functions";
 import {
   selectNode,
   closeNode,
@@ -103,8 +104,7 @@ export const TreePage = React.memo(({ match }) => {
     }
   }, [containerRef, nodeList, linkList, isEditingTree]);
 
-  //const [localTreeTitle, setLocalTreeTitle] = React.useState(treeTitle);
-
+  // FEATURE: Tree Data Download as a Markdown.md
   const [dataStr, setDataStr] = React.useState({});
   React.useEffect(() => {
     // 노드리스트를 순회하면서 각각의 title,body 를 추출하고 그걸 통짜 텍스트로.
@@ -114,6 +114,47 @@ export const TreePage = React.memo(({ match }) => {
     });
     setDataStr("data:text/json;charset=utf-8," + encodeURIComponent(fullText));
   }, [nodeList, linkList, treeTitle]);
+
+  // FEATURE : search text in tree data
+  const [searchValue, setSearchValue] = React.useState("");
+  const [searchResultList, setSearchResultList] = React.useState([]);
+  const searchInTree = React.useCallback(
+    (e) => {
+      setSearchResultList();
+      if (e.code === "Enter" && searchValue !== "") {
+        const searchedTextRegex = new RegExp(searchValue.toLowerCase());
+        const tempResult1 = nodeList.map((ele) => {
+          if (searchedTextRegex.test(ele.name.toLowerCase())) {
+            const trimmed = { ...ele, body: `${ele.body.substr(0, 50)}...` };
+            return trimmed;
+          } else if (searchedTextRegex.test(ele.body.toLowerCase())) {
+            const cutNumber = ele.body
+              .toLowerCase()
+              .search(searchValue.toLowerCase());
+
+            const trimmed = {
+              ...ele,
+              body:
+                "..." +
+                ele.body.substring(cutNumber - 30, cutNumber) +
+                ele.body.substring(cutNumber, cutNumber + 30) +
+                "...",
+            };
+            return trimmed;
+          } else {
+            return null;
+          }
+        });
+
+        const tempResult = tempResult1.filter((ele) => {
+          return ele !== null;
+        });
+
+        setSearchResultList(tempResult);
+      }
+    },
+    [searchValue, searchResultList]
+  );
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -145,6 +186,86 @@ export const TreePage = React.memo(({ match }) => {
       <TreeMap id="treeMap" ref={containerRef} />
 
       <TreeFooter>
+        <SearchArea>
+          <div style={{ display: "inline-flex" }}>
+            <StyledSearchInput
+              placeholder="Search In Tree..."
+              value={searchValue}
+              type="search"
+              onKeyPress={(e) => {
+                searchInTree(e);
+              }}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+              }}
+            />
+          </div>
+
+          {searchValue === "" ? (
+            ""
+          ) : (
+            <div>
+              {searchResultList?.map((ele, idx) => {
+                return (
+                  <SearchNodeCard
+                    key={idx}
+                    onClick={() => {
+                      const originalNode = nodeList.find((origin) => {
+                        return ele.id === origin.id;
+                      });
+                      const previousNodeList = returnPreviousNodeList(
+                        linkList,
+                        nodeList,
+                        nodeList.find((origin) => {
+                          return ele.id === origin.id;
+                        })
+                      );
+                      const nextNodeList = returnNextNodeList(
+                        linkList,
+                        nodeList,
+                        nodeList.find((origin) => {
+                          return ele.id === origin.id;
+                        })
+                      );
+
+                      reduxStore.dispatch(selectNode(originalNode));
+                      const d = document.createElement("div");
+                      d.id = `${originalNode.id}`;
+                      d.className = "nodeModalDOM";
+                      document.getElementById("root").appendChild(d);
+
+                      const modalList =
+                        document.getElementsByClassName("nodeModal");
+                      const zIndexList = Array.from(modalList).map(
+                        (originalNode) => {
+                          return originalNode.style.zIndex;
+                        }
+                      );
+                      const max = Math.max(...zIndexList);
+
+                      ReactDOM.render(
+                        <SelectedNodeModal
+                          defaultZ={max + 1}
+                          node={originalNode}
+                        />,
+                        document.getElementById(d.id) //document.getElementById("treeMap")
+                      );
+                    }}
+                  >
+                    <div style={{ display: "flex", marginBottom: "10px" }}>
+                      {" "}
+                      <NodeColorSymbol
+                        style={{ background: ele.fillColor }}
+                      ></NodeColorSymbol>
+                      <div>{ele.name}</div>
+                    </div>
+                    <div>{ele.body}</div>
+                  </SearchNodeCard>
+                );
+              })}
+            </div>
+          )}
+        </SearchArea>
         <>
           <a href={dataStr} download={`${treeTitle}.md`}>
             <DefaultButton>Download Tree Data as a markdown.md</DefaultButton>
@@ -288,6 +409,35 @@ const TreeFooter = styled.div`
   display: flex;
   justify-content: space-between;
   margin: 5px;
+`;
+
+export const SearchArea = styled.div`
+  padding-bottom: 10px;
+`;
+
+export const StyledSearchInput = styled(LargeTextInput)``;
+
+export const NodeColorSymbol = styled.div`
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  border: none;
+  margin-left: 10px;
+  margin-right: 10px;
+`;
+
+export const SearchNodeCard = styled.div`
+  background: #ffffff;
+  //display: flex;
+  cursor: pointer;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border: 1px solid ${colorPalette.gray2};
+  box-shadow: ${boxShadow.default};
+  &:hover {
+    ${hoverAction};
+  }
 `;
 
 const mapWidth = 1200;
