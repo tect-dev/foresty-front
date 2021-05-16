@@ -152,7 +152,7 @@ export const LoginPage = React.memo(() => {
             ) : (
               <ButtonArea>
                 <Loader
-                  type="Puff"
+                  type="ThreeDots"
                   color={colorPalette.green8}
                   height={30}
                   width={30}
@@ -240,7 +240,7 @@ export const LoginPage = React.memo(() => {
           ) : (
             <ButtonArea>
               <Loader
-                type="Puff"
+                type="ThreeDots"
                 color={colorPalette.green8}
                 height={30}
                 width={30}
