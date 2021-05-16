@@ -361,7 +361,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   let linkList = originalLinkList;
   let folderList = [];
 
-  const selectedColor = "#00bebe"; //colorPalette.green2;
+  const selectedColor = colorPalette.green2; // "#00bebe"; //colorPalette.green2;
   const selectedNodeStrokeWidth = "8px";
 
   const selectedNodeList = reduxStore.getState().tree.selectedNodeList;
@@ -1073,6 +1073,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
 
   function initLabel() {
     labelGroup.selectAll("*").remove();
+
     labelGroup
       .selectAll("text")
       .data(nodeList)
@@ -1086,15 +1087,55 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
       .attr("class", (d) => d.id)
-      .text((d) => {
-        return d.name;
-      })
       .style("font-size", labelSize)
       .style("user-select", "none")
       .style("-webkit-user-select", "none")
       .style("-moz-user-select", "none")
       .style("-ms-user-select", "none")
-      .style("text-shadow", "1px 1px 1px #ffffff");
+      .text((d) => {
+        return d.name;
+      });
+
+    labelGroup.selectAll("text").each(function (d) {
+      d.bbox = this.getBBox();
+    });
+
+    labelGroup
+      .append("g")
+      .selectAll("rect")
+      .data(nodeList)
+      .join("rect")
+      .attr("x", (d) => d.x - d.bbox.width / 2)
+      .attr("y", (d) => {
+        return d.y + nodeRadius * 2 - d.bbox.height / 2;
+      })
+      .attr("width", (d) => d.bbox.width)
+      .attr("height", (d) => d.bbox.height)
+      .style("fill", "white")
+      .style("opacity", "1");
+    labelGroup.selectAll("text").remove();
+
+    labelGroup
+      .selectAll("text")
+      .data(nodeList)
+      .join("text")
+      .attr("x", (d) => {
+        return d.x;
+      })
+      .attr("y", (d) => {
+        return d.y + nodeRadius * 2;
+      })
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .attr("class", (d) => d.id)
+      .style("font-size", labelSize)
+      .style("user-select", "none")
+      .style("-webkit-user-select", "none")
+      .style("-moz-user-select", "none")
+      .style("-ms-user-select", "none")
+      .text((d) => {
+        return d.name;
+      });
   }
 
   svg
@@ -1258,7 +1299,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
     ////await reduxStore.dispatch(createNode(treeID, nodeList));
     ////changeTreeInfo();
 
-    initFolder();
+    // initFolder();
 
     //initNode();
   }

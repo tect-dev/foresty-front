@@ -126,7 +126,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
         left:
           window.pageXOffset +
           document.getElementsByClassName(node.id)[0].getBoundingClientRect()
-            .x +
+            .x -
           30 +
           "px",
       }}
@@ -210,8 +210,13 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
       </DocuHeaderArea>
       <DocuBodyArea>
         {isEditing ? (
-          <MarkdownEditor bindingText={text} bindingSetter={setText} />
+          <>
+            <MarkdownEditor bindingText={text} bindingSetter={setText} />
+            <br />
+            <LargeText>Preview</LargeText>
+          </>
         ) : null}
+
         <MarkdownRenderer text={text} />
       </DocuBodyArea>
     </ModalWrapper>
@@ -245,6 +250,7 @@ const ModalWrapper = styled.div`
 `;
 
 const DocuHeaderArea = styled.div`
+  background-color: #ffffff;
   position: sticky;
   position: -webkit-sticky;
   top: 0px;
@@ -264,7 +270,7 @@ const DocuHeader = styled.div`
 `;
 
 const DocuHeaderEdited = styled.div`
-  background-color: ${colorPalette.white0};
+  background-color: #ffffff;
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 5px;

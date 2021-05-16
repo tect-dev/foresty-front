@@ -152,13 +152,13 @@ export const LoginPage = React.memo(() => {
             ) : (
               <ButtonArea>
                 <Loader
-                  type="ThreeDots"
+                  type="Puff"
                   color={colorPalette.green8}
                   height={30}
                   width={30}
                   //timeout={3000} //3 secs
                 />
-                Loading...
+                <>Loading...</>
               </ButtonArea>
             )}
           </ButtonArea>
@@ -240,13 +240,13 @@ export const LoginPage = React.memo(() => {
           ) : (
             <ButtonArea>
               <Loader
-                type="ThreeDots"
+                type="Puff"
                 color={colorPalette.green8}
                 height={30}
                 width={30}
                 //timeout={3000} //3 secs
               />
-              Loading...
+              <>Loading...</>
             </ButtonArea>
           )}
         </Container>
@@ -285,6 +285,8 @@ const FormButton = styled(DefaultButton)`
 export const ButtonArea = styled.div`
   margin-left: auto;
   margin-right: auto;
+  display: grid;
+  place-items: center;
 `;
 
 export const FormInput = styled(LargeTextInput)`
