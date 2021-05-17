@@ -21,6 +21,7 @@ import {
 } from "../components/Buttons";
 import { LargeTextInput } from "../components/Inputs";
 import xCircle from "../assets/xCircle.svg";
+import ReactTooltip from "react-tooltip";
 
 import ReactDOM from "react-dom";
 import * as d3 from "d3";
@@ -217,13 +218,23 @@ const DemoTree = () => {
 
         <div style={{ display: "flex" }}>
           {!isEditingTree ? (
-            <EditButton id="treeEditButton">
+            <EditButton id="treeEditButton" data-tip="Edit Graph Status">
               <EditIcon />
+              <ReactTooltip effect="solid" />
             </EditButton>
           ) : null}
-          <EditButton id="treeSaveButton">
+          <EditButton id="treeSaveButton" data-tip="Save Changes">
             <DoneIcon />
+            <ReactTooltip effect="solid" />
           </EditButton>
+          <EditButton
+            data-tip="Double click on canvas = Create a document <br><br/>Click on circle = Open the document<br><br/>Drag circle to circle = Create a connection<br><br/>In edit mode, drag a node = Change position of the node"
+            data-multiline={true}
+            data-event="click"
+          >
+            How To Use It?
+          </EditButton>
+          <ReactTooltip effect="solid" globalEventOff="click" />
         </div>
       </TreeHeader>
 
