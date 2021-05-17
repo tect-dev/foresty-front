@@ -10,6 +10,7 @@ import {
   FaHeading,
 } from "react-icons/fa";
 import RagePower from "../lib/powerMode";
+import ReactTooltip from "react-tooltip";
 
 import axios from "axios";
 
@@ -230,24 +231,54 @@ export const MarkdownEditor = ({
   return (
     <div>
       <MarkdownToolkit>
-        <MarkdownButton onClick={addCodeBlock} title="add code block">
+        <MarkdownButton
+          onClick={addCodeBlock}
+          data-tip="add code block"
+          title="add code block"
+        >
           <FaCode />
         </MarkdownButton>
-        <MarkdownButton onClick={addMathBlock} title="add LaTeX">
+        <ReactTooltip effect="solid" />
+        <MarkdownButton
+          onClick={addMathBlock}
+          data-tip="add LaTeX block"
+          title="add LaTeX"
+        >
           <FaSuperscript />
         </MarkdownButton>
-        <MarkdownButton onClick={addBoldText} title="add bold text">
+        <ReactTooltip effect="solid" />
+        <MarkdownButton
+          onClick={addBoldText}
+          data-tip="add bold text"
+          title="add bold text"
+        >
           <FaBold />
         </MarkdownButton>
-        <MarkdownButton onClick={addLargeTitle} title="add large title">
+        <ReactTooltip effect="solid" />
+        <MarkdownButton
+          onClick={addLargeTitle}
+          data-tip="add large text"
+          title="add large title"
+        >
           <FaHeading />
         </MarkdownButton>
-        <MarkdownButton onClick={addItalicText} title="add italic text">
+        <ReactTooltip effect="solid" />
+        <MarkdownButton
+          onClick={addItalicText}
+          data-tip="add italic text"
+          title="add italic text"
+        >
           <FaItalic />
         </MarkdownButton>
-        <MarkdownButton onClick={addLink} title="add external link">
+        <ReactTooltip effect="solid" />
+        <MarkdownButton
+          onClick={addLink}
+          data-tip="add external link"
+          title="add external link"
+        >
           <FaLink />
         </MarkdownButton>
+        <ReactTooltip effect="solid" />
       </MarkdownToolkit>
       <div>
         <RagePower>

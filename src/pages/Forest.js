@@ -45,7 +45,7 @@ export const ForestPage = ({ match }) => {
               dispatch(createTree(myID, myNickname));
             }}
           >
-            Plant New Tree
+            Create New Canvas
           </DefaultButton>
           <DefaultButton
             onClick={() => {

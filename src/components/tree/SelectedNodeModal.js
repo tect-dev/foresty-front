@@ -4,6 +4,7 @@ import { EditButton, XIcon, EditIcon, DoneIcon } from "../Buttons";
 import { LargeTextInput } from "../Inputs";
 import { LargeText } from "../Texts";
 import { BlockEditor } from "../BlockEditor";
+import ReactTooltip from "react-tooltip";
 
 import React from "react";
 import styled from "styled-components";
@@ -142,6 +143,7 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
                 }}
                 placeholder="title..."
                 maxLength={50}
+                style={{ cursor: "text" }}
               />
             </div>
             <div>
@@ -152,16 +154,20 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
                   }
                   setIsEditing(!isEditing);
                 }}
+                data-tip="Finish Edit"
               >
                 <DoneIcon />
               </EditButton>
+              <ReactTooltip effect="solid" />
               <EditButton
                 onClick={() => {
                   reduxStore.dispatch(closeNode(node));
                 }}
+                data-tip="Close Document"
               >
                 <XIcon />
               </EditButton>
+              <ReactTooltip effect="solid" />
             </div>
           </DocuHeaderEdited>
         ) : null}
@@ -178,34 +184,42 @@ export const SelectedNodeModal = React.memo(({ defaultZ, node }) => {
                   }
                   setIsEditing(!isEditing);
                 }}
+                data-tip="Edit Document"
               >
                 <EditIcon />
               </EditButton>
+              <ReactTooltip effect="solid" />
               <EditButton
                 onClick={() => {
                   reduxStore.dispatch(closeNode(node));
                 }}
+                data-tip="Close Document"
               >
                 <XIcon />
               </EditButton>
+              <ReactTooltip effect="solid" />
             </div>
           </DocuHeader>
         ) : null}
 
         {isEditing ? (
-          <NodeColorButtonArea>
-            {colorList.map((color) => {
-              return (
-                <NodeColorButton
-                  style={{ background: color }}
-                  onClick={() => {
-                    setNodeColor(color);
-                    reduxStore.dispatch(changeNodeColor(node.id, color));
-                  }}
-                ></NodeColorButton>
-              );
-            })}
-          </NodeColorButtonArea>
+          <>
+            <NodeColorButtonArea>
+              {colorList.map((color) => {
+                return (
+                  <NodeColorButton
+                    style={{ background: color }}
+                    onClick={() => {
+                      setNodeColor(color);
+                      reduxStore.dispatch(changeNodeColor(node.id, color));
+                    }}
+                    data-tip="Change Node Color"
+                  ></NodeColorButton>
+                );
+              })}
+            </NodeColorButtonArea>
+            <ReactTooltip effect="solid" />
+          </>
         ) : null}
       </DocuHeaderArea>
       <DocuBodyArea>
