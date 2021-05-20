@@ -12,6 +12,23 @@ code {
     monospace;
 }
 
+
+div.tooltip {
+  word-break: break-all;
+  position: absolute;
+  text-align: center;
+  width: 130px;
+  padding: 10px;
+  font: 12px sans-serif;
+  color: #ffffff;
+  background-color: rgb(30, 30, 30);
+  border: 0;
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+
 a {
   text-decoration-line: none;
   color: inherit;

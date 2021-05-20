@@ -47,6 +47,14 @@ import { togglePowerMode } from "../redux/user";
 
 export const TreePage = React.memo(({ match }) => {
   const containerRef = React.useRef(null);
+  const nodeHoverTooltip = (node) => {
+    return `<div>     
+      <p><b>${node.name}</b></p>
+      <p>${
+        node.body.length > 100 ? node.body.substr(0, 100) + "..." : node.body
+      }</p>
+    </div>`;
+  };
 
   const history = useHistory();
   const dispatch = useDispatch();
@@ -101,7 +109,7 @@ export const TreePage = React.memo(({ match }) => {
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (containerRef.current) {
-      initGraph(containerRef.current, nodeList, linkList);
+      initGraph(containerRef.current, nodeList, linkList, nodeHoverTooltip);
     }
   }, [containerRef, nodeList, linkList, isEditingTree]);
 
@@ -195,7 +203,6 @@ export const TreePage = React.memo(({ match }) => {
       </TreeHeader>
 
       <TreeMap id="treeMap" ref={containerRef} />
-      <ReactTooltip effect="solid" />
 
       <TreeFooter>
         <SearchArea>
@@ -514,9 +521,15 @@ export function initMap(container) {
   svg.append("g").attr("class", "nodes");
   svg.append("g").attr("class", "labels");
   svg.append("g").attr("class", "folders");
+  svg.append("g").attr("class", "tooltips");
 }
 
-export function initGraph(container, originalNodeList, originalLinkList) {
+export function initGraph(
+  container,
+  originalNodeList,
+  originalLinkList,
+  nodeHoverTooltip
+) {
   const width = mapWidth || 1200;
   const height = mapHeight || 700;
   let nodeList = originalNodeList;
@@ -547,6 +560,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   const nodeGroup = svg.select(".nodes");
   const folderGroup = svg.select(".folders");
   const labelGroup = svg.select(".labels");
+  const tooltipGroup = svg.select(".tooltips");
 
   const treeEditButton = d3.select("#treeEditButton").on("click", () => {
     reduxStore.dispatch(editTree());
@@ -666,6 +680,20 @@ export function initGraph(container, originalNodeList, originalLinkList) {
   }
 
   function initNode() {
+    tooltipGroup
+      .selectAll("div")
+      .data(nodeList)
+      .join("div")
+      .attr("data-tooltip-text", (node) => {
+        return node.body.substr(0, 50);
+      })
+      .attr("x", (d) => {
+        return d.x;
+      })
+      .attr("y", (d) => {
+        return d.y;
+      });
+
     const createdNodeGroup = nodeGroup
       .selectAll("circle")
       .data(nodeList)
@@ -688,7 +716,7 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         return d.y;
       })
       .attr("class", (d) => {
-        return d.id;
+        return `${d.id} node-tooltip`;
       })
       .style("z-index", (d) => {
         if (d.type === "folder") {
@@ -712,7 +740,21 @@ export function initGraph(container, originalNodeList, originalLinkList) {
         }
       })
       .style("stroke-width", selectedNodeStrokeWidth)
+      .on("mouseover", (d) => {
+        if (
+          document.getElementById("node-tooltip") ||
+          d3.select(".tempLine").style("opacity") != 0
+        ) {
+          document.getElementById("node-tooltip")?.remove();
+        } else {
+          addTooltip(nodeHoverTooltip, d, d3.event.pageX, d3.event.pageY);
+        }
+      })
+      .on("mouseout", (d) => {
+        document.getElementById("node-tooltip")?.remove();
+      })
       .on("click", (node) => {
+        document.getElementById("node-tooltip")?.remove();
         if (node.type === "folder") {
           nodeList.reverse();
           return;
@@ -1489,6 +1531,17 @@ export function initGraph(container, originalNodeList, originalLinkList) {
       else d[d.length - 1] = [x1, y1];
       active.attr("d", line);
     });
+  }
+
+  function addTooltip(hoverTooltip, node, x, y) {
+    const tooltip = d3.select(container).append("div");
+    tooltip
+      .html(hoverTooltip(node))
+      .attr("class", "tooltip")
+      .attr("id", "node-tooltip")
+      .style("left", `${x + 5}px`)
+      .style("top", `${y - 80}px`)
+      .style("opacity", "0.85");
   }
 
   reduxStore.subscribe(initNode);
