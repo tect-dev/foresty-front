@@ -15,11 +15,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as d3 from "d3";
 import styled from "styled-components";
-import {
-  returnNodeList,
-  returnLinkList,
-  returnSelectedList,
-} from "../lib/testCode";
 import { colorPalette, boxShadow, hoverAction } from "../lib/style";
 import { reduxStore } from "../index";
 import { useSelector, useDispatch } from "react-redux";
@@ -87,25 +82,7 @@ export const TreePage = React.memo(({ match }) => {
   });
 
   React.useEffect(() => {
-    if (containerRef.current) {
-      initMap(containerRef.current);
-    }
-    return () => {
-      dispatch(cleanUp());
-    };
-  }, []);
-  React.useEffect(() => {
     dispatch(readTree(myID, treeID, treeAuthorID));
-    //  if (treeID) {
-    //    authService.onAuthStateChanged((user) => {
-    //      if (user) {
-    //        dispatch(readTree(myID, treeID));
-    //      } else {
-    //        Swal.fire("Login Required!");
-    //        history.push("/login");
-    //      }
-    //    });
-    //  }
   }, [dispatch, myID, treeID]);
   React.useEffect(() => {
     if (containerRef.current) {
@@ -232,20 +209,6 @@ export const TreePage = React.memo(({ match }) => {
                       const originalNode = nodeList.find((origin) => {
                         return ele.id === origin.id;
                       });
-                      const previousNodeList = returnPreviousNodeList(
-                        linkList,
-                        nodeList,
-                        nodeList.find((origin) => {
-                          return ele.id === origin.id;
-                        })
-                      );
-                      const nextNodeList = returnNextNodeList(
-                        linkList,
-                        nodeList,
-                        nodeList.find((origin) => {
-                          return ele.id === origin.id;
-                        })
-                      );
 
                       reduxStore.dispatch(selectNode(originalNode));
                       const d = document.createElement("div");
@@ -386,17 +349,13 @@ export const TreePage = React.memo(({ match }) => {
 
 export const TreeHeader = styled.div`
   border-radius: 3px;
-  //border: 1px solid ${colorPalette.gray3};
-  //background-color: ${colorPalette.gray0};
   display: flex;
-  //flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   padding-left: 2vw;
   padding-right: 2vw;
   padding-bottom: 10px;
   padding-top: 10px;
-  //width: 100%;
   @media (max-width: 768px) {
     padding-left: 5vw;
     padding-right: 5vw;
@@ -409,10 +368,7 @@ export const TreeMap = styled.div`
   background-color: #ffffff;
   box-shadow: ${boxShadow.default};
   z-index: 0;
-  //position: relative;
-  //position: fixed;
   position: static;
-  // position: absolute;
   height: auto;
   width: 100%;
 `;
@@ -447,7 +403,6 @@ export const NodeColorSymbol = styled.div`
 
 export const SearchNodeCard = styled.div`
   background: #ffffff;
-  //display: flex;
   cursor: pointer;
   padding: 10px;
   margin-top: 5px;
@@ -465,71 +420,65 @@ const linkWidth = "2.5px";
 const linkColor = "#999999"; //colorPalette.gray3;
 const nodeRadius = 20;
 
-export function initMap(container) {
-  //var touchEvents = ["touchstart", "touchmove", "touchend"];
-  //touchEvents.forEach(function (eventName) {
-  //  document.body.addEventListener(eventName, function (e) {
-  //    e.preventDefault();
-  //  });
-  //});
-  const svg = d3
-    .select(container)
-    .append("svg")
-    .attr("id", "treeContainer")
-    .attr("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
-
-  // 마우스 드래그할때 나타나는 임시 라인 만들어두기.
-  svg
-    .append("g")
-    .append("line")
-    .attr("class", "tempLine")
-    .style("stroke", linkColor)
-    .style("stroke-width", linkWidth)
-    .attr("marker-end", "url(#temp-end-arrow)")
-    .style("opacity", "0")
-    .attr("display", "none");
-
-  // 화살표 마커
-  svg
-    .append("svg:defs")
-    .append("svg:marker")
-    .attr("id", "end-arrow")
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", nodeRadius * 1.1)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", nodeRadius * 1.5)
-    .attr("orient", "auto")
-    .append("svg:path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", linkColor);
-
-  // tempLine만을 위한 화살표 마커
-  svg
-    .append("svg:defs")
-    .append("svg:marker")
-    .attr("id", "temp-end-arrow")
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 9)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", nodeRadius * 1.5)
-    .attr("orient", "auto")
-    .append("svg:path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", linkColor);
-
-  svg.append("g").attr("class", "links");
-  svg.append("g").attr("class", "nodes");
-  svg.append("g").attr("class", "labels");
-  svg.append("g").attr("class", "folders");
-  svg.append("g").attr("class", "tooltips");
-}
-
 export function initGraph(
   container,
   originalNodeList,
   originalLinkList,
   nodeHoverTooltip
 ) {
+  if (!document.getElementById("treeContainer")) {
+    const svg = d3
+      .select(container)
+      .append("svg")
+      .attr("id", "treeContainer")
+      .attr("viewBox", `0 0 ${mapWidth} ${mapHeight}`);
+
+    // 마우스 드래그할때 나타나는 임시 라인 만들어두기.
+    svg
+      .append("g")
+      .append("line")
+      .attr("class", "tempLine")
+      .attr("id", "tempLine")
+      .style("stroke", linkColor)
+      .style("stroke-width", linkWidth)
+      .attr("marker-end", "url(#temp-end-arrow)")
+      .style("opacity", "0")
+      .attr("display", "none");
+
+    // 화살표 마커
+    svg
+      .append("svg:defs")
+      .append("svg:marker")
+      .attr("id", "end-arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", nodeRadius * 1.1)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", nodeRadius * 1.5)
+      .attr("orient", "auto")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", linkColor);
+
+    // tempLine만을 위한 화살표 마커
+    svg
+      .append("svg:defs")
+      .append("svg:marker")
+      .attr("id", "temp-end-arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 9)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", nodeRadius * 1.5)
+      .attr("orient", "auto")
+      .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", linkColor);
+
+    svg.append("g").attr("class", "links").attr("id", "links");
+    svg.append("g").attr("class", "nodes").attr("id", "nodes");
+    svg.append("g").attr("class", "labels").attr("id", "labels");
+    svg.append("g").attr("class", "folders").attr("id", "folders");
+    svg.append("g").attr("class", "tooltips").attr("id", "tooltips");
+  }
   const width = mapWidth || 1200;
   const height = mapHeight || 700;
   let nodeList = originalNodeList;
@@ -706,7 +655,7 @@ export function initGraph(
             return false;
           }
         }).length;
-        return node.radius * (1 + relatedNumber / 20);
+        return node.radius; //* (1 + relatedNumber / 20);
       })
       .style("fill", (d) => d.fillColor)
       .attr("cx", (d) => {
