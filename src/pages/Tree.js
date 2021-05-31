@@ -33,6 +33,7 @@ import {
   deleteLink,
   cleanUp,
   updateTreePrivacy,
+  updateDocu,
 } from "../redux/tree";
 import Swal from "sweetalert2";
 import { uid } from "uid";
@@ -80,6 +81,26 @@ export const TreePage = React.memo(({ match }) => {
       powerMode: state.user.powerMode,
     };
   });
+
+  // FEATURE : handle browser resize
+  const isClient = typeof window === "object";
+  function getSize() {
+    return {
+      width: isClient ? window.innerWidth : undefined,
+      height: isClient ? window.innerHeight : undefined,
+    };
+  }
+  const [windowSize, setWindowSize] = React.useState(getSize);
+  React.useEffect(() => {
+    if (!isClient) {
+      return false;
+    }
+    function handleResize() {
+      setWindowSize(getSize());
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   React.useEffect(() => {
     dispatch(readTree(myID, treeID, treeAuthorID));
@@ -142,6 +163,8 @@ export const TreePage = React.memo(({ match }) => {
     [searchValue, searchResultList]
   );
 
+  // FEATURE : react label 을 생성하고 그 label 이 수정가능하게끔.
+
   return (
     <div style={{ padding: "2rem" }}>
       <TreeHeader>
@@ -180,6 +203,61 @@ export const TreePage = React.memo(({ match }) => {
       </TreeHeader>
 
       <TreeMap id="treeMap" ref={containerRef} />
+      {nodeList.map((node) => {
+        if (!containerRef) {
+          return;
+        }
+        // 화면 리사이즈 될때마다 리렌더링 하는 훅.
+        var timer;
+        const nodeDom = document.getElementById(`node${node.id}`);
+        if (!nodeDom) {
+          return;
+        }
+
+        return (
+          <div
+            contentEditable="true"
+            spellcheck="false"
+            onInput={(e) => {
+              // 변경이 발생하면 1초마다 기존값과 체크하고, 기존값과 다르다면 갱신.
+              if (timer) {
+                clearTimeout(timer);
+              }
+              timer = setTimeout(function () {
+                if (e.target.innerText !== node.name) {
+                  reduxStore.dispatch(
+                    updateDocu(
+                      treeID,
+                      nodeList,
+                      node,
+                      e.target.innerText,
+                      node.body,
+                      node.fillColor
+                    )
+                  );
+                }
+              }, 500);
+            }}
+            style={{
+              position: "absolute",
+              textAlign: "center",
+              backgroundColor: colorPalette.gray0,
+              border: `solid 1px ${colorPalette.green5}`,
+              padding: "3px",
+              opacity: "0.9",
+              left:
+                window.pageXOffset + nodeDom.getBoundingClientRect().x + "px",
+              top:
+                2.5 * node.radius +
+                window.pageYOffset +
+                nodeDom.getBoundingClientRect().y +
+                "px",
+            }}
+          >
+            {node.name}
+          </div>
+        );
+      })}
 
       <TreeFooter>
         <SearchArea>
@@ -253,95 +331,7 @@ export const TreePage = React.memo(({ match }) => {
             <DefaultButton>Download Tree Data as a markdown.md</DefaultButton>
           </a>
         </>
-        {/* 
-       power mode. position bug?
-         <div>
-          {powerMode ? (
-            <DefaultButton
-              onClick={() => {
-                dispatch(togglePowerMode());
-              }}
-            >
-              Now Editor Power Mode On
-            </DefaultButton>
-          ) : (
-            <DefaultButton
-              onClick={() => {
-                dispatch(togglePowerMode());
-              }}
-            >
-              Now Editor Power Mode Off
-            </DefaultButton>
-          )}
-        </div>
        
-       tree private feature. now error.
-        <>
-          {treeAuthorID === myID ? (
-            <>
-              {" "}
-              {treePublic ? (
-                <div>
-                  This Tree Is Now{" "}
-                  <DefaultButton
-                    onClick={() => {
-                      Swal.fire({
-                        title: "Do you want to hide the tree?",
-                        //text: "You won't be able to revert this!",
-                        icon: "warning",
-                        confirmButtonColor: "#3085d6", // "#3085d6",
-                        confirmButtonText: "Yes, hide it!",
-                        showCancelButton: true,
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          dispatch(updateTreePrivacy(treeID, false));
-                          Swal.fire(
-                            "Done!",
-                            "Now other cannot see this tree.",
-                            "success"
-                          );
-                        }
-                      });
-                    }}
-                  >
-                    Published
-                  </DefaultButton>
-                </div>
-              ) : (
-                <div>
-                  This Tree Is Now{" "}
-                  <DefaultButton
-                    onClick={() => {
-                      Swal.fire({
-                        title: "Do you want to publish the tree?",
-                        //text: "You won't be able to revert this!",
-                        icon: "warning",
-                        confirmButtonColor: "#3085d6", // "#3085d6",
-
-                        confirmButtonText: "Yes, publish it!",
-                        showCancelButton: true,
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          dispatch(updateTreePrivacy(treeID, true));
-                          Swal.fire(
-                            "Published!",
-                            "Tree has been published.",
-                            "success"
-                          );
-                        }
-                      });
-                    }}
-                  >
-                    Private
-                  </DefaultButton>
-                </div>
-              )}
-            </>
-          ) : (
-            ""
-          )}
-        </>
-        */}
       </TreeFooter>
     </div>
   );
@@ -667,11 +657,14 @@ export function initGraph(
       .attr("class", (d) => {
         return `${d.id} node-tooltip`;
       })
+      .attr("id", (node) => {
+        return `node${node.id}`;
+      })
       .style("z-index", (d) => {
         if (d.type === "folder") {
           return "-1";
         } else {
-          return "1";
+          return "0";
         }
       })
       .style("stroke", (node) => {
@@ -1224,9 +1217,12 @@ export function initGraph(
       .style("cursor", "pointer");
   }
 
+  // deprecated. 없애야함.
   function initLabel() {
+    /*
     labelGroup.selectAll("*").remove();
 
+    // psuedo-label, just for making white background
     labelGroup
       .selectAll("text")
       .data(nodeList)
@@ -1241,14 +1237,11 @@ export function initGraph(
       .attr("dominant-baseline", "central")
       .attr("class", (d) => d.id)
       .style("font-size", labelSize)
-      .style("user-select", "none")
-      .style("-webkit-user-select", "none")
-      .style("-moz-user-select", "none")
-      .style("-ms-user-select", "none")
       .text((d) => {
         return d.name;
       });
 
+    // make white background
     labelGroup.selectAll("text").each(function (d) {
       d.bbox = this.getBBox();
     });
@@ -1265,9 +1258,11 @@ export function initGraph(
       .attr("width", (d) => d.bbox.width)
       .attr("height", (d) => d.bbox.height)
       .style("fill", "white")
-      .style("opacity", "1");
+      .style("opacity", "0.8");
+
     labelGroup.selectAll("text").remove();
 
+    // make real label
     labelGroup
       .selectAll("text")
       .data(nodeList)
@@ -1281,41 +1276,42 @@ export function initGraph(
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
       .attr("class", (d) => d.id)
+      .attr("class", "node-title")
+      .attr("contenteditable", "true")
       .style("font-size", labelSize)
-      .style("user-select", "none")
-      .style("-webkit-user-select", "none")
-      .style("-moz-user-select", "none")
-      .style("-ms-user-select", "none")
       .text((d) => {
         return d.name;
       });
+      */
   }
 
-  svg
-    .on("dblclick", async (d) => {
-      if (true) {
-        //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
-        const offsetElement = document.getElementById("treeContainer");
-        const clientRect = offsetElement.getBoundingClientRect();
-        const ratioFactor = width / clientRect.width;
-        const createdNode = {
-          id: `node${uid(20)}`,
-          name: "New Node",
-          x: d3.event.offsetX * ratioFactor,
-          y: d3.event.offsetY * ratioFactor,
-          radius: nodeRadius,
-          body: "New Document",
-          hashtags: [],
-          fillColor: "#51cf66",
-          parentNodeID: [],
-          childNodeID: [],
-        };
-        nodeList = [...nodeList, createdNode];
-        await reduxStore.dispatch(createNode(treeID, nodeList));
-        changeTreeInfo();
-        initNode();
-      }
-    })
+  svg.on("dblclick", async (d) => {
+    if (true) {
+      //treeAuthor?.firebaseUid === reduxStore.getState().auth.userID) {
+      const offsetElement = document.getElementById("treeContainer");
+      const clientRect = offsetElement.getBoundingClientRect();
+      const ratioFactor = width / clientRect.width;
+      const createdNode = {
+        id: `node${uid(20)}`,
+        name: "New Node",
+        x: d3.event.offsetX * ratioFactor,
+        y: d3.event.offsetY * ratioFactor,
+        radius: nodeRadius,
+        body: "New Document",
+        hashtags: [],
+        fillColor: "#51cf66",
+        parentNodeID: [],
+        childNodeID: [],
+      };
+      nodeList = [...nodeList, createdNode];
+      await reduxStore.dispatch(createNode(treeID, nodeList));
+      changeTreeInfo();
+      initNode();
+    }
+  });
+  // FEATURE : 마우스 드래그로 도형 그려서 폴더 분류하기
+  // LEGACY
+  /*
     .call(
       d3
         .drag()
@@ -1329,7 +1325,33 @@ export function initGraph(
         .on("start", dragstarted)
         .on("end", dragend)
     );
+
   var line = d3.line().curve(d3.curveBasis);
+  function dragstarted() {
+    var d = d3.event.subject,
+      active = svg
+        .append("path")
+        .datum(d)
+        .attr("id", "temp-drawing")
+        .style("fill", "none")
+        .style("stroke", "#000")
+        .style("stroke-width", "3px")
+        .style("stroke-linejoin", "round")
+        .style("stroke-dasharray", "10,10"),
+      x0 = d3.event.x,
+      y0 = d3.event.y;
+
+    d3.event.on("drag", function () {
+      var x1 = d3.event.x,
+        y1 = d3.event.y,
+        dx = x1 - x0,
+        dy = y1 - y0;
+
+      if (dx * dx + dy * dy > 100) d.push([(x0 = x1), (y0 = y1)]);
+      else d[d.length - 1] = [x1, y1];
+      active.attr("d", line);
+    });
+  }
   function dragend() {
     const tempDrawing = document.getElementById("temp-drawing");
 
@@ -1456,32 +1478,7 @@ export function initGraph(
 
     //initNode();
   }
-  function dragstarted() {
-    var d = d3.event.subject,
-      active = svg
-        .append("path")
-        .datum(d)
-        .attr("id", "temp-drawing")
-        .style("fill", "none")
-        .style("stroke", "#000")
-        .style("stroke-width", "3px")
-        .style("stroke-linejoin", "round")
-        .style("stroke-dasharray", "10,10"),
-      x0 = d3.event.x,
-      y0 = d3.event.y;
-
-    d3.event.on("drag", function () {
-      var x1 = d3.event.x,
-        y1 = d3.event.y,
-        dx = x1 - x0,
-        dy = y1 - y0;
-
-      if (dx * dx + dy * dy > 100) d.push([(x0 = x1), (y0 = y1)]);
-      else d[d.length - 1] = [x1, y1];
-      active.attr("d", line);
-    });
-  }
-
+*/
   function addTooltip(hoverTooltip, node, x, y) {
     const tooltip = d3.select(container).append("div");
     tooltip

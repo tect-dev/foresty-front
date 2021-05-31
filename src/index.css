@@ -16,6 +16,7 @@ code {
 div.tooltip {
   word-break: break-all;
   position: absolute;
+  z-index: 1;
   text-align: center;
   width: 130px;
   padding: 10px;
@@ -26,6 +27,10 @@ div.tooltip {
   border-radius: 2px;
   pointer-events: none;
   box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  user-select: none;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
 }
 
 
