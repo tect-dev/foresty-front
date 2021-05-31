@@ -218,26 +218,21 @@ export const TreePage = React.memo(({ match }) => {
           <div
             contentEditable="true"
             spellcheck="false"
-            onInput={(e) => {
-              // 변경이 발생하면 1초마다 기존값과 체크하고, 기존값과 다르다면 갱신.
-              if (timer) {
-                clearTimeout(timer);
+            onBlur={(e) => {
+              if (e.target.innerText !== node.name) {
+                reduxStore.dispatch(
+                  updateDocu(
+                    treeID,
+                    nodeList,
+                    node,
+                    e.target.innerText,
+                    node.body,
+                    node.fillColor
+                  )
+                );
               }
-              timer = setTimeout(function () {
-                if (e.target.innerText !== node.name) {
-                  reduxStore.dispatch(
-                    updateDocu(
-                      treeID,
-                      nodeList,
-                      node,
-                      e.target.innerText,
-                      node.body,
-                      node.fillColor
-                    )
-                  );
-                }
-              }, 500);
             }}
+            
             style={{
               position: "absolute",
               textAlign: "center",
@@ -331,7 +326,6 @@ export const TreePage = React.memo(({ match }) => {
             <DefaultButton>Download Tree Data as a markdown.md</DefaultButton>
           </a>
         </>
-       
       </TreeFooter>
     </div>
   );
