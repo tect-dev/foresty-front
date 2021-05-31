@@ -101,7 +101,12 @@ export const TreePage = React.memo(({ match }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+  React.useEffect(() => {
+    console.log("Hello! We are Foresty.");
+    return () => {
+      dispatch(cleanUp());
+    };
+  }, []);
   React.useEffect(() => {
     dispatch(readTree(myID, treeID, treeAuthorID));
   }, [dispatch, myID, treeID]);
@@ -213,6 +218,7 @@ export const TreePage = React.memo(({ match }) => {
         if (!nodeDom) {
           return;
         }
+        const x = "-50%";
 
         return (
           <div
@@ -232,21 +238,23 @@ export const TreePage = React.memo(({ match }) => {
                 );
               }
             }}
-            
+            // 지금 width 의 너비를 렌더링 전에는 알수가 없어서 어떡하지. 글자수에 비례해서 움직이게 해야하나?
             style={{
               position: "absolute",
               textAlign: "center",
               backgroundColor: colorPalette.gray0,
               border: `solid 1px ${colorPalette.green5}`,
+              fontSize: "12px",
               padding: "3px",
-              opacity: "0.9",
-              left:
-                window.pageXOffset + nodeDom.getBoundingClientRect().x + "px",
+              opacity: "1",
+              left: nodeDom.getBoundingClientRect().x + "px",
               top:
                 2.5 * node.radius +
                 window.pageYOffset +
                 nodeDom.getBoundingClientRect().y +
                 "px",
+              //transformOrigin: "0% 50%",
+              //transform: `translateX(-50%)`,
             }}
           >
             {node.name}
