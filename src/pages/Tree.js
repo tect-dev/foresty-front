@@ -218,7 +218,6 @@ export const TreePage = React.memo(({ match }) => {
         if (!nodeDom) {
           return;
         }
-        const x = "-50%";
 
         return (
           <div
@@ -244,17 +243,17 @@ export const TreePage = React.memo(({ match }) => {
               textAlign: "center",
               backgroundColor: colorPalette.gray0,
               border: `solid 1px ${colorPalette.green5}`,
-              fontSize: "12px",
+              fontSize: 10 * (windowSize.width / 1024) + 4 + "px",
               padding: "3px",
               opacity: "1",
-              left: nodeDom.getBoundingClientRect().x + "px",
+              left: node.radius + nodeDom.getBoundingClientRect().x + "px",
               top:
-                2.5 * node.radius +
+                2 * (windowSize.width / 1024) * node.radius +
                 window.pageYOffset +
                 nodeDom.getBoundingClientRect().y +
                 "px",
-              //transformOrigin: "0% 50%",
-              //transform: `translateX(-50%)`,
+              transformOrigin: "50% 50%",
+              transform: `translateX(-45%)`,
             }}
           >
             {node.name}
