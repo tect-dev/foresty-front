@@ -2,6 +2,9 @@ import { HomePage } from "./pages/Home.js";
 import { TreePage } from "./pages/Tree";
 import { ForestPage } from "./pages/Forest";
 import { LoginPage } from "./pages/Login";
+import { ErrorPage } from "./pages/Error";
+import { ContactPage } from "./pages/Contact.js";
+import { FAQPage } from "./pages/FAQ.js";
 import { GlobalWrapper } from "./wrapper/GlobalWrapper";
 
 import React, { useEffect } from "react";
@@ -32,8 +35,12 @@ function App() {
       <Switch>
         <Route path="/" exact={true} component={HomePage} />
         <Route path="/login" exact={true} component={LoginPage} />
+        <Route path="/contact" exact={true} component={ContactPage} />
+        <Route path="/faq" exact={true} component={FAQPage} />
         <Route path="/forest/:userID" component={ForestPage} />
         <Route path="/tree/:treeID" component={TreePage} />
+
+        <Route path="*" component={ErrorPage} />
       </Switch>
     </GlobalWrapper>
   );

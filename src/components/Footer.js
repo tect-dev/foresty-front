@@ -6,19 +6,22 @@ import { colorPalette, fontWeight } from "../lib/style";
 export const Footer = React.memo(() => {
   return (
     <StyledFooter>
+      <Copyright>Foresty © 2021</Copyright>
       <StyledUL>
+        <StyledLI>
+          <Link to="/contact">Contact</Link>
+        </StyledLI>
+        <StyledLI>
+          <Link to="/faq">FAQ</Link>
+        </StyledLI>
+
         {/*
-        <StyledLI>
-          <Link to="/">Home</Link>
-        </StyledLI>
-        <StyledLI>
-          <Link to="/">Forum</Link>
-        </StyledLI>
+        
+        
         <StyledLI>
           <Link to="/">Github(</Link>
         </StyledLI>*/}
       </StyledUL>
-      <Copyright>Foresty © 2021</Copyright>
     </StyledFooter>
   );
 });
