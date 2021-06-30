@@ -19,6 +19,7 @@ export const LoginPage = React.memo(() => {
   // 6~20자리. 최소 하나이상의 숫자 또는 특수문자를 포함해야함.
   const passwordRegex = /^(?=.*[a-zA-Z])((?=.*\d)|(?=.*\W)).{6,20}$/;
 
+  const [emailButtonActive, setEmailButtonActive] = React.useState(true);
   const [isSignUp, setIsSignUp] = React.useState(false);
   const { loading, error, myID, verificationCode } = useSelector((state) => {
     return {
@@ -108,13 +109,11 @@ export const LoginPage = React.memo(() => {
             />
           </div>
 
-          {/*
-          //이메일 인증 관련 코드
-           <div>
+          <div>
             <FormInput
               placeholder="email verification code"
               onChange={(e) => {
-                if (e.target.value === verificationCode) {
+                if (e.target.value == verificationCode) {
                   setVerificationCheck(true);
                 } else {
                   setVerificationCheck(false);
@@ -130,14 +129,18 @@ export const LoginPage = React.memo(() => {
             ) : (
               <FormButton
                 onClick={() => {
+                  setEmailButtonActive(false);
                   dispatch(sendSignUpVerificationEmail(email));
+                  setTimeout(() => {
+                    setEmailButtonActive(true);
+                  }, 5000);
                 }}
+                disabled={!emailButtonActive}
               >
                 Send email verification code
               </FormButton>
             )}
           </ButtonArea>
-          */}
 
           <ButtonArea>
             {!loading ? (
@@ -145,7 +148,7 @@ export const LoginPage = React.memo(() => {
                 onClick={() => {
                   dispatch(signUp(email, password));
                 }}
-                disabled={!signUpCheck}
+                disabled={!(signUpCheck && verificationCheck)}
               >
                 SIGN UP
               </FormButton>

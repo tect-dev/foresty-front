@@ -40,18 +40,28 @@ const SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS =
 const SEND_SIGNUP_VERIFICATION_EMAIL_FAIL =
   "user/SEND_SIGNUP_VERIFICATION_EMAIL_FAIL";
 export const sendSignUpVerificationEmail = (email) => async (dispatch) => {
-  const uid4 = uid(4);
-
   dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_TRY });
+
   try {
-    //axios({method:"post",url:""})
-    // axios post 이용해서 서버에 email 값을 보낸다. 그럼 서버에선 해당 email로 v
-    // 보내는게 성공했으면 verificationCode 에다가 uid4 를 집어넣는다.
-    //https://asia-northeast3-tect-for-development.cloudfunctions.net/sendEmailVerificationCode
-    Swal.fire("e-Mail Went Smoothly", "Please Check Your Mail Box!");
-    dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS, uid4 });
+    const socket = new WebSocket(process.env.REACT_APP_WSS_URL);
+
+    socket.onopen = (e) => {
+      socket.send(email);
+    };
+    //let key;
+    socket.onmessage = (event) => {
+      const key = JSON.parse(event.data).message;
+
+      Swal.fire("e-Mail Went Smoothly", "Please Check Your Mail Box!");
+      dispatch({
+        type: SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS,
+        key,
+      });
+    };
+    //const key = "123456";
   } catch (e) {
     Swal.fire("Sorry!", "Error. Please Re-try Verification");
+    console.log(e);
     dispatch({ type: SEND_SIGNUP_VERIFICATION_EMAIL_FAIL, error: e });
   }
 };
@@ -100,7 +110,7 @@ export default function user(state = initialState, action) {
     case SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS:
       return {
         ...state,
-        verificationCode: action.uid4,
+        verificationCode: action.key,
         loading: false,
       };
     case SEND_SIGNUP_VERIFICATION_EMAIL_FAIL:

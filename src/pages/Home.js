@@ -104,17 +104,9 @@ export const HomePage = () => {
         <DemoTree />
       </BlockWrapper>
       <BlockWrapper>
-        <XXLargeText>Today, we're moving to Beta.</XXLargeText>
+        <XXLargeText>Get your personal knowledge tree!</XXLargeText>
         <br />
         <br />
-        <XLargeText>
-          Join the beta and get a forever access
-          <br />
-          (all of Foresty's services are available for a life)
-        </XLargeText>
-        <br />
-        <br />
-        {/*<LargeText> No credit card required</LargeText>*/}
         <div>
           <DefaultButton>
             {!loginCheck ? (
