@@ -53,6 +53,7 @@ export const sendSignUpVerificationEmail = (email) => async (dispatch) => {
       const key = JSON.parse(event.data).message;
 
       Swal.fire("e-Mail Went Smoothly", "Please Check Your Mail Box!");
+      socket.close();
       dispatch({
         type: SEND_SIGNUP_VERIFICATION_EMAIL_SUCCESS,
         key,
